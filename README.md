@@ -13,13 +13,16 @@ To install and use ABtestCLI, follow these steps:
 2. Navigate to the project directory:
    ```bash
     cd abtest-cli
+
 3. Link the package globally using npm:
    ```bash
    npm link .
-4. Once the package is linked, you can use the mycli command to create a new folder based on the input provided:
+   
+4. In case of an error message, you can use sudo:
    ```bash
-   abetst create
+   sudo npm link
 
 5. Follow the prompts to provide input and customize the folder creation process.
+
 
 
