@@ -1,0 +1,32 @@
+{
+  "name": "ab-test-cli",
+  "version": "1.0.0",
+  "description": "A command line interface tool designed to streamline the creation of A/B test boilerplate code.",
+  "main": "index.js",
+  "bin": {
+    "abtest": "./bin/abtest.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "postinstall": "mkdir -p template/douglas-ab-testing-boilerplate"
+  },
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "commander": "^12.0.0",
+    "esm": "^3.2.25",
+    "figlet": "^1.7.0",
+    "inquirer": "^8.2.6",
+    "listr": "^0.14.3",
+    "ncp": "^2.0.0",
+    "prompts": "^2.4.2"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "template/"
+  ],
+  "author": "",
+  "license": "MIT"
+}
