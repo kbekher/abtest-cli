@@ -3,6 +3,7 @@ const ncp = require("ncp").ncp;
 const path = require("path");
 const prompts = require("prompts");
 const chalk = require("chalk");
+const ora = require("ora");
 
 const { createMessage } = require("../utils/utils");
 
@@ -31,7 +32,7 @@ function createProject() {
     {
       type: "select",
       name: "global",
-      message: "Do you need a global.js? ",
+      message: "Do you need a global.js?",
       choices: [
         { title: "No", value: false },
         { title: "Yes", value: true },
@@ -69,13 +70,16 @@ function createProject() {
         return console.error(err);
       }
 
-      console.log(chalk.cyan("Template directory copied successfully! \n"));
+      // Provide feedback to user
+      // console.log(chalk.cyan("Template directory copied successfully! \n"));
+
+      spinner.succeed(chalk.green.bold("Project created successfully."));
+
       console.log(
-        chalk.gray.bold(
-          `Navigate to ${projectName} directory and start coding! \n`
-        )
+        chalk.gray(`Navigate to ${projectName} directory and start coding! 🚀 \n`)
       );
-      createMessage("Start A/B Test!");
+
+      createMessage("Time to A/B Test!");
     });
 
     // Create src directory
@@ -83,8 +87,7 @@ function createProject() {
     fs.mkdirSync(srcDir);
 
     // Construct content
-    const contentJS = `
-import { qs } from 'douglas-toolkit';
+    const contentJS = `import { qs } from 'douglas-toolkit';
 
 /**
   * Ticket
@@ -124,8 +127,11 @@ import { qs } from 'douglas-toolkit';
       fs.writeFileSync(path.join(srcDir, "global.scss"), contentCSS, "utf8");
     }
 
-    // Provide feedback to user
-    console.log(chalk.green.bold("Project created successfully. \n"));
+    // Start loading
+    const spinner = ora({
+      text: chalk.bold.yellowBright("PROCESSING..."),
+      spinner: "soccerHeader", // Choose the spinner style here
+    }).start();
   })();
 }
 

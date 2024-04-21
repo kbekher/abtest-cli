@@ -8,20 +8,6 @@ const chalk = require("chalk");
 //   "Small Slant",
 //   "Train",
 
-// COLORS chalk
-//   "green",
-//   "yellow",
-//   "blue",
-//   "magenta",
-//   "cyan",
-//   "blackBright",
-//   "greenBright",
-//   "yellowBright",
-//   "blueBright",
-//   "magentaBright",
-//   "cyanBright",
-
-
 // Function to create a nice message
 function createMessage(message) {
   figlet.text(
