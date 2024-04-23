@@ -1,12 +1,25 @@
 const figlet = require("figlet");
 const chalk = require("chalk");
 
-// FONTS figlet
-//   "Swamp Land",
-//   "Varsity",
-//   "Soft",
-//   "Small Slant",
-//   "Train",
+const COLORS = [
+  "green",
+  "yellow",
+  "blue",
+  "magenta",
+  "cyan",
+  "blackBright",
+  "greenBright",
+  "yellowBright",
+  "blueBright",
+  "magentaBright",
+  "cyanBright",
+];
+
+// Generate a random font/color
+function getRandom() {
+  const randomIndex = Math.floor(Math.random() * COLORS.length);
+  return COLORS[randomIndex];
+}
 
 // Function to create a nice message
 function createMessage(message) {
@@ -26,7 +39,12 @@ function createMessage(message) {
         return;
       }
 
-      console.log(chalk.magenta(data));
+      console.log(
+        data
+          .split(" ")
+          .map((word) => chalk[getRandom("color")](word))
+          .join(" ")
+      );
     }
   );
 }
