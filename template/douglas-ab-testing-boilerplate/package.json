@@ -33,7 +33,7 @@
     "webpack-dev-server": "^4.11.0"
   },
   "dependencies": {
-    "douglas-toolkit": "^1.0.1",
+    "@douglas.onsite.experimentation/douglas-ab-testing-toolkit": "^1.0.2",
     "mini-css-extract-plugin": "^2.6.1"
   }
 }

@@ -40,13 +40,24 @@ function createProject() {
       initial: 0,
       hint: "- Return to submit",
     },
+    {
+      type: "select",
+      name: "goals",
+      message: "Do you need a goals.js?",
+      choices: [
+        { title: "No", value: false },
+        { title: "Yes", value: true },
+      ],
+      initial: 0,
+      hint: "- Return to submit",
+    },
   ];
 
   (async () => {
     const response = await prompts(questions);
 
-    // Distruct  and set data
-    let { ticket, variations, global } = response;
+    // Distruct and set data
+    let { ticket, variations, global, goals } = response;
 
     // If the user exits with Ctrl+C, exit
     if (ticket === undefined || !variations) return;
@@ -76,7 +87,9 @@ function createProject() {
       spinner.succeed(chalk.green.bold("Project created successfully."));
 
       console.log(
-        chalk.gray(`Navigate to ${projectName} directory and start coding! 🚀 \n`)
+        chalk.gray(
+          `Navigate to ${projectName} directory and start coding! 🚀 \n`
+        )
       );
 
       createMessage("Time to A/B Test!");
@@ -86,30 +99,69 @@ function createProject() {
     const srcDir = path.join(projectPath, "src");
     fs.mkdirSync(srcDir);
 
-    // Construct content
-    const contentJS = `import { qs } from 'douglas-toolkit';
+    // Construct the base content for variations
+    const constructVariationContent = (i) => {
+      let imports = `import { hotjar } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';\n`;
+      if (global && i !== 0) imports += `import { init } from './global.js';\n`;
+      if (goals) imports += `import { goals } from './goals.js';\n`;
+
+      return `${imports}
 
 /**
-  * Ticket
-  * https://douglas-group.atlassian.net/browse/UX-${ticket}
-  */
+ * Ticket
+ * https://douglas-group.atlassian.net/browse/UX-${ticket}
+*/
 
 (() => {
   const PREFIX = 'ux${ticket}__';
+
+  ${goals ? `goals(PREFIX);\n` : ""}
+  ${global && i !== 0 ? `init(PREFIX, ${i});\n` : ""}
+  hotjar(PREFIX + 'v${i}');\n
 })();
-  `;
+`;};
+
+    // Construct global.js content
+    const contentGlobal = `import { qs } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
+
+/**
+ * Ticket
+ * https://douglas-group.atlassian.net/browse/UX-${ticket}
+ */
+
+export const init = (prefix, variant) => {
+
+};
+`;
+
+    // Construct goals.js content
+    const contentGoals = `import { pushMetric } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
+
+/**
+ * Ticket
+ * https://douglas-group.atlassian.net/browse/UX-${ticket}
+ */
+
+export const goals = (prefix) => {
+
+};
+`;
 
     const contentCSS = `$prefix: '.ux${ticket}__';`;
 
     // Create control.js
-    fs.writeFileSync(path.join(srcDir, "control.js"), contentJS, "utf8");
+    fs.writeFileSync(
+      path.join(srcDir, "control.js"),
+      constructVariationContent(0),
+      "utf8"
+    );
 
     // Create variations
     for (let i = 1; i < variations; i++) {
       // Variation-0[i].js
       fs.writeFileSync(
         path.join(srcDir, `variation-0${i}.js`),
-        contentJS,
+        constructVariationContent(i),
         "utf8"
       );
 
@@ -123,8 +175,12 @@ function createProject() {
 
     // Create global.js and global.scss files
     if (global) {
-      fs.writeFileSync(path.join(srcDir, "global.js"), contentJS, "utf8");
+      fs.writeFileSync(path.join(srcDir, "global.js"), contentGlobal, "utf8");
       fs.writeFileSync(path.join(srcDir, "global.scss"), contentCSS, "utf8");
+    }
+    // Create goals.js file
+    if (goals) {
+      fs.writeFileSync(path.join(srcDir, "goals.js"), contentGoals, "utf8");
     }
 
     // Start loading
