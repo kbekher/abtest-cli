@@ -4,7 +4,7 @@ A command line interface (CLI) tool designed to streamline the creation of A/B t
 
 ## Installation
 
-To install and use ABtestCLI, follow these steps:
+To install and use A/B Testing CLI, follow these steps:
 
 1. Clone the repository:
    ```bash
@@ -22,7 +22,12 @@ To install and use ABtestCLI, follow these steps:
    ```bash
    sudo npm link
 
-5. Follow the prompts to provide input and customize the folder creation process.
+5. Invoke CLI with the following command:
+   ```bash
+   abtest create
 
+6. Follow the prompts to provide input and customize the folder creation process.
 
+## License
 
+MIT
