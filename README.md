@@ -1,6 +1,6 @@
 # A/B Testing Custom CLI
 
-A command line interface (CLI) tool designed to streamline the creation of A/B test boilerplate code. With this tool, you can quickly generate the necessary structure and components needed to set up A/B tests for your projects, saving time and ensuring consistency in your testing processÏ
+A command line interface (CLI) tool designed to streamline the creation of A/B test boilerplate code. With this tool, you can quickly generate the necessary structure and components needed to set up A/B tests for your projects, saving time and ensuring consistency in your testing process.
 
 ## Installation
 
