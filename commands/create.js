@@ -82,8 +82,6 @@ function createProject() {
       }
 
       // Provide feedback to user
-      // console.log(chalk.cyan("Template directory copied successfully! \n"));
-
       spinner.succeed(chalk.green.bold("Project created successfully."));
 
       console.log(
@@ -101,11 +99,8 @@ function createProject() {
 
     // Construct the base content for variations
     const constructVariationContent = (i) => {
-      let imports = `import { hotjar } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';\n`;
-      if (global && i !== 0) imports += `import { init } from './global.js';\n`;
-      if (goals) imports += `import { goals } from './goals.js';\n`;
 
-      return `${imports}
+      return `import { hotjar, ${global ? 'exec' : ''} } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
 
 /**
  * Ticket
@@ -113,25 +108,29 @@ function createProject() {
 */
 
 (() => {
+  ${global ? `exec('ux${ticket}');` : ''}
+
   const PREFIX = 'ux${ticket}__';
 
-  ${goals ? `goals(PREFIX);\n` : ""}
-  ${global && i !== 0 ? `init(PREFIX, ${i});\n` : ""}
   hotjar(PREFIX + 'v${i}');\n
 })();
 `;};
 
     // Construct global.js content
-    const contentGlobal = `import { qs } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
+    const contentGlobal = `${ global ? `import { share } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';` : ''}
 
 /**
  * Ticket
  * https://douglas-group.atlassian.net/browse/UX-${ticket}
  */
 
-export const init = (prefix, variant) => {
+${global ? `share('ux${ticket}', () => {
+  const PREFIX = 'ux${ticket}__';
 
-};
+});` : `(() => {
+  const PREFIX = 'ux${ticket}__';
+
+})();`}
 `;
 
     // Construct goals.js content
@@ -142,9 +141,10 @@ export const init = (prefix, variant) => {
  * https://douglas-group.atlassian.net/browse/UX-${ticket}
  */
 
-export const goals = (prefix) => {
+(() => {
+  const PREFIX = 'ux${ticket}__';
 
-};
+})();
 `;
 
     const contentCSS = `$prefix: '.ux${ticket}__';`;
