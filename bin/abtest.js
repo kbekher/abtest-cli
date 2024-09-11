@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const { Command } = require("commander");
-const createProject = require("../commands/create");
+const deploy = require("../commands/deploy");
 const { createMessage } = require('../utils/utils');
 
 const program = new Command();
@@ -13,7 +13,7 @@ program
     createMessage('Welcome to A/B Test CLI!');
 
     setTimeout(() => {
-      createProject();
+      deploy();
     }, 500);
   });
 

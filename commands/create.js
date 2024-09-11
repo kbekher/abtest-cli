@@ -7,7 +7,7 @@ const ora = require("ora");
 
 const { createMessage } = require("../utils/utils");
 
-function createProject() {
+async function create() {
   // Get data from the user as a prompt
   const questions = [
     {
@@ -34,8 +34,8 @@ function createProject() {
       name: "global",
       message: "Do you need a global.js?",
       choices: [
-        { title: "No", value: false },
         { title: "Yes", value: true },
+        { title: "No", value: false },
       ],
       initial: 0,
       hint: "- Return to submit",
@@ -51,9 +51,20 @@ function createProject() {
       initial: 0,
       hint: "- Return to submit",
     },
+    // {
+    //   type: "select",
+    //   name: "country",
+    //   message: "Select Country:",
+    //   choices: [
+    //     { title: "Germany", value: 'de' },
+    //     { title: "France", value: 'fr' },
+    //     // Add other countries here
+    //   ],
+    //   initial: 0,
+    //   hint: "- Return to submit",
+    // },
   ];
 
-  (async () => {
     const response = await prompts(questions);
 
     // Distruct and set data
@@ -82,7 +93,7 @@ function createProject() {
       }
 
       // Provide feedback to user
-      spinner.succeed(chalk.green.bold("Project created successfully."));
+      spinner.succeed(chalk.green.bold("Directory was created successfully."));
 
       console.log(
         chalk.gray(
@@ -185,10 +196,12 @@ ${global ? `share('ux${ticket}', () => {
 
     // Start loading
     const spinner = ora({
-      text: chalk.bold.yellowBright("PROCESSING..."),
+      text: chalk.bold.yellowBright("Creating directory..."),
       spinner: "soccerHeader", // Choose the spinner style here
     }).start();
-  })();
+
+    // Return the projectName or any other data you want to pass to deploy.js
+    return { projectName, variations }; //TODO: new control to be considered, country code
 }
 
-module.exports = createProject;
+module.exports = create;
