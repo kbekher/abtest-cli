@@ -1,5 +1,3 @@
-// const fs = require("fs");
-// const path = require("path");
 const create = require('./create');
 const chalk = require("chalk");
 const ora = require("ora");
