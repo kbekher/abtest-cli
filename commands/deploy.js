@@ -16,11 +16,15 @@ const variationsListUrl = `${baseUrlAPI}/variations`;
 const SEGMENT_ID_QA = 273199;
 const baseProjectURL = "https://www.douglas.de/de"; //TODO: change dinamycally for other countries
 const siteId = 25854; //TODO: change dinamycally for other countries based on siteListUrl
+const siteCode = "puk22r4nl1";  //TODO: change dinamycally for other countries based on siteListUrl
 const mainGoalId = 345342; //TODO: change dinamycally for other countries based on siteID with getGoalsForSite()
 
 let projectName;
+let country;
+let isNewControl;
 let variations;
 let bearerToken;
+let experiment;
 let experimentId;
 
 const getAccessToken = async (clientId, clientSecret) => {
@@ -37,7 +41,9 @@ const getPlatformData = async (url, token) => {
   try {
     const response = await axios.get(url, {
       headers: {
-        'Authorization': token
+        'Authorization': token,
+        'Content-Type': 'application/json',
+        'Accept': '*/*', 
       }
     });
     
@@ -67,30 +73,84 @@ const getGoalsForSite = async (siteId, token) => {
   }
 };
 
-const createVariation = async (experimentId, variationName) => {
+const createExperiment = async () => {
+
+}
+
+const updateExperiment = async (experimentId, token, data) => {
+  const experimentData = JSON.stringify({
+    ...data
+  });
+
+  const config = {
+    method: 'patch',
+    maxBodyLength: Infinity,
+    url: `${experimentListUrl}/${experimentId}`,
+    headers: { 
+      'Content-Type': 'application/json', 
+      'Accept': '*/*', 
+      'Authorization': token
+    },
+    data : experimentData
+  };
+
+  try {
+    const response = await axios(config);
+    return response.data; 
+  } catch (error) {
+    throw new Error(`Error updating experiment: ${error.message}`);
+  }
+}
+
+const createVariation = async (siteId, variationName, token) => {
   const variationData = JSON.stringify({
-    "name": variationName,
-    "experimentId": experimentId,
-    "type": "CLASSIC" // or other types depending on your use case
+    "name": `Variant ${variationName}`,
+    "siteId": siteId,
   });
 
   const config = {
     method: 'post',
-    url: 'https://api.kameleoon.com/variations', // Kameleoon API endpoint for creating variations
+    url: variationsListUrl, 
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': bearerToken
+      'Accept': '*/*', 
+      'Authorization': token
     },
     data: variationData
   };
 
   try {
     const response = await axios(config);
-    return response.data.id; // Returns the variation ID
+    return response.data; 
+  } catch (error) {
+    console.log(`Error creating variation: ${error.message}`);
+  }
+};
+
+const updateVariation = async (siteId, variationId, variationName, token) => {
+  const variationData = JSON.stringify({
+    "name": variationName,
+    "siteId": siteId,
+  });
+
+  const config = {
+    method: 'patch',
+    url: `${variationsListUrl}/${variationId}`, 
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': '*/*', 
+      'Authorization': token
+    },
+    data: variationData
+  };
+
+  try {
+    const response = await axios(config);
+    return response.data; // TODO:
   } catch (error) {
     throw new Error(`Error creating variation: ${error.message}`);
   }
-};
+}
 
 
 async function deploy() {
@@ -98,8 +158,12 @@ async function deploy() {
   const inputData = await create();
   if (!inputData) return;
 
-  projectName = inputData.projectName;
+  projectName = `${inputData.projectName} --CLI`; // Add CLI flag
+  country = inputData.country;
+  isNewControl = inputData.newControl;
   variations = inputData.variations;
+
+  // console.log('Variations', variations);
 
   // Start loading
   const spinner = ora({
@@ -150,18 +214,79 @@ async function deploy() {
   try {
     const response = await axios(config);
 
-    // console.log(response.data); 
+    experiment = response.data;
+    experimentId = experiment.id;
 
-    experimentId = response.data.id;
+    // console.log('experiment', experiment); 
+
+    // console.log('experimentId', experimentId);
     
     // Provide feedback to user
     spinner.succeed(chalk.green.bold("Experiment was created successfully."));
+    // console.log("Experiment was created");
   } catch(error) {
     spinner.fail(chalk.red.bold("Oops, something went wrong..."));
     console.error(error.response ? error.response.data : error.message);
   }
 
-  // Create variations
+  const variationIds = [];
+
+  try {
+    // Create variations
+      if (isNewControl) {
+      const firstVariationId = experiment.variations[0];
+
+      // console.log('New Control ID:', firstVariationId);
+
+      // If New Control is needed - rename 1 variation to new control,
+      await updateVariation(siteId, firstVariationId, 'New Control', bearerToken);
+
+      // Create all additional variations
+      const creationPromises = [];
+      for (let i = 1; i <= variations; i++) {
+        creationPromises.push(createVariation(siteId, i, bearerToken));
+      }
+
+      const createdVariations = await Promise.all(creationPromises);
+      variationIds.push(...createdVariations.map(v => v.id)); // Extract IDs
+
+    } else if (variations > 1) {
+      // If no new control, create additional variations beyond the default one
+      const creationPromises = [];
+      for (let i = 2; i <= variations; i++) {
+        creationPromises.push(createVariation(siteId, i, bearerToken));
+      }
+
+    const createdVariations = await Promise.all(creationPromises);
+    variationIds.push(...createdVariations.map(v => v.id)); // Extract IDs
+    }
+  } catch(error) {
+    console.error(chalk.red('Error while creating or updating variations:'), error.message);
+  }
+
+  // console.log('variationIds', variationIds);
+
+  // Prepare to update deviations 
+  // This way you can assign variations to the experiment
+  if (variationIds.length > 0) {
+    const deviations = { ...experiment.deviations };
+
+    // console.log('deviations', deviations);
+
+    variationIds.forEach((variationId) => {
+      deviations[variationId] = 0; 
+    });
+
+    // console.log('Updated deviations:', deviations);
+
+    try {
+      updateExperiment(experimentId, bearerToken, { "deviations": deviations });
+    } catch(error) {
+      console.error(chalk.red('Error updating experiment with variations:'), error.message);
+    }
+  }
+
+
 
 }
 

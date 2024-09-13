@@ -16,17 +16,47 @@ async function create() {
       message: "Enter Ticket Number:",
       format: (v) => `${v === "" ? "0000" : "" + v}`,
     },
+      {
+      type: "select",
+      name: "country",
+      message: "Select Country:",
+      choices: [
+        { title: "Germany", value: "www.douglas.de" },
+        { title: "France", value: "www.nocibe.fr" },
+        { title: "Poland", value: "www.douglas.pl" },
+        { title: "Italy", value: "www.douglas.it" },
+        { title: "Netherlands", value: "www.douglas.nl" },
+        { title: "Belgium", value: "www.douglas.be" },
+        { title: "Austria", value: "www.douglas.at" },
+        { title: "Switzerland", value: "www.douglas.ch" },
+        { title: "Spain", value: "www.douglas.es" },
+        // Add other countries here
+      ],
+      initial: 0,
+      hint: "- Return to submit",
+    },
+    {
+      type: "select",
+      name: "newControl",
+      message: "Do you need a New Control?",
+      choices: [
+        { title: "Yes", value: true },
+        { title: "No", value: false },
+      ],
+      initial: 0,
+      hint: "- Return to submit",
+    },
     {
       type: "select",
       name: "variations",
       message: "Select Number of variations:",
       choices: [
-        { title: "One", description: "Only control", value: 1 },
-        { title: "Two", description: "Control and V1", value: 2 },
-        { title: "Three", description: "Control, V1, V2", value: 3 },
-        { title: "Four", description: "Control, V1, V2, V3", value: 4 },
+        { title: "One", description: "V1", value: 1 }, 
+        { title: "Two", description: "V1 and V2", value: 2 }, 
+        { title: "Three", description: "V1, V2, V3", value: 3 }, 
+        { title: "Four", description: "V1, V2, V3, V4", value: 4 },
       ],
-      initial: 1,
+      initial: 0,
       hint: "- Return to submit",
     },
     {
@@ -40,35 +70,18 @@ async function create() {
       initial: 0,
       hint: "- Return to submit",
     },
-    {
-      type: "select",
-      name: "goals",
-      message: "Do you need a goals.js?",
-      choices: [
-        { title: "No", value: false },
-        { title: "Yes", value: true },
-      ],
-      initial: 0,
-      hint: "- Return to submit",
-    },
     // {
-    //   type: "select",
-    //   name: "country",
-    //   message: "Select Country:",
-    //   choices: [
-    //     { title: "Germany", value: 'de' },
-    //     { title: "France", value: 'fr' },
-    //     // Add other countries here
-    //   ],
-    //   initial: 0,
-    //   hint: "- Return to submit",
+    //   type: "text",
+    //   name: "ticket",
+    //   message: "Enter Goal Name:",
+    //   format: (v) => `${v === "" ? "0000" : "" + v}`,
     // },
   ];
 
     const response = await prompts(questions);
 
     // Distruct and set data
-    let { ticket, variations, global, goals } = response;
+    let { ticket, country, newControl, variations, global } = response;
 
     // If the user exits with Ctrl+C, exit
     if (ticket === undefined || !variations) return;
@@ -144,31 +157,17 @@ ${global ? `share('ux${ticket}', () => {
 })();`}
 `;
 
-    // Construct goals.js content
-    const contentGoals = `import { pushMetric } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
-
-/**
- * Ticket
- * https://douglas-group.atlassian.net/browse/UX-${ticket}
- */
-
-(() => {
-  const PREFIX = 'ux${ticket}__';
-
-})();
-`;
-
     const contentCSS = `$prefix: '.ux${ticket}__';`;
 
-    // Create control.js
+    // Create control.js or new-control.js
     fs.writeFileSync(
-      path.join(srcDir, "control.js"),
+      path.join(srcDir, `${newControl ? "new-" : ""}control.js`),
       constructVariationContent(0),
       "utf8"
     );
 
     // Create variations
-    for (let i = 1; i < variations; i++) {
+    for (let i = 1; i <= variations; i++) {
       // Variation-0[i].js
       fs.writeFileSync(
         path.join(srcDir, `variation-0${i}.js`),
@@ -189,10 +188,6 @@ ${global ? `share('ux${ticket}', () => {
       fs.writeFileSync(path.join(srcDir, "global.js"), contentGlobal, "utf8");
       fs.writeFileSync(path.join(srcDir, "global.scss"), contentCSS, "utf8");
     }
-    // Create goals.js file
-    if (goals) {
-      fs.writeFileSync(path.join(srcDir, "goals.js"), contentGoals, "utf8");
-    }
 
     // Start loading
     const spinner = ora({
@@ -200,8 +195,8 @@ ${global ? `share('ux${ticket}', () => {
       spinner: "soccerHeader", // Choose the spinner style here
     }).start();
 
-    // Return the projectName or any other data you want to pass to deploy.js
-    return { projectName, variations }; //TODO: new control to be considered, country code
+    // Return data you want to pass to deploy.js
+    return { projectName, country, newControl, variations }; 
 }
 
 module.exports = create;
