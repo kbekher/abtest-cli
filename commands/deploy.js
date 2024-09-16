@@ -209,7 +209,7 @@ async function deploy() {
     "name": projectName,
     "siteId": siteId, 
     "targetingSegmentId": SEGMENT_ID_QA,
-    "type": "DEVELOPER", // Code editor
+    "type": "SDK_HYBRID", // Code editor
   });
 
   const config = {
