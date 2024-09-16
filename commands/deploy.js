@@ -1,8 +1,22 @@
+const path = require('path');
+const fs = require('fs');
 const create = require('./create');
 const chalk = require("chalk");
 const ora = require("ora");
 const axios = require("axios");
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+// Define the path to the .env file in the user's home directory
+const envPath = path.join(require('os').homedir(), '.env');
+
+// Check if the .env file exists
+if (fs.existsSync(envPath)) {
+  // Load the .env file from the user's home directory
+  dotenv.config({ path: envPath });
+} else {
+  console.error('Error: .env file not found in user directory');
+  process.exit(1);
+}
 
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
