@@ -33,10 +33,6 @@ const siteId = 25854; //TODO: change dinamycally for other countries based on si
 const siteCode = "puk22r4nl1";  //TODO: change dinamycally for other countries based on siteListUrl
 const mainGoalId = 345342; //TODO: change dinamycally for other countries based on siteID with getGoalsForSite()
 
-let projectName;
-let country;
-let isNewControl;
-let variations;
 let bearerToken;
 let experiment;
 let experimentId;
@@ -166,16 +162,19 @@ const updateVariation = async (siteId, variationId, variationName, token) => {
   }
 }
 
+const getFormattedDate = () => `${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`;
+
 
 async function deploy() {
   // Create project folder locally
   const inputData = await create();
   if (!inputData) return;
 
-  projectName = `${inputData.projectName} --CLI`; // Add CLI flag
-  country = inputData.country;
-  isNewControl = inputData.newControl;
-  variations = inputData.variations;
+  const { ticket, name, country, newControl: isNewControl, variations } = inputData;
+
+  const projectName = `[${country.toUpperCase()}  - DEV] ${getFormattedDate()} | UX-${ticket} - ${name} --CLI`; // Add CLI flag
+  const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`;
+  console.log('countryDomain', countryDomain);
 
   // console.log('Variations', variations);
 
@@ -237,6 +236,7 @@ async function deploy() {
     
     // Provide feedback to user
     spinner.succeed(chalk.green.bold("Experiment was created successfully."));
+
     // console.log("Experiment was created");
   } catch(error) {
     spinner.fail(chalk.red.bold("Oops, something went wrong..."));
@@ -299,8 +299,6 @@ async function deploy() {
       console.error(chalk.red('Error updating experiment with variations:'), error.message);
     }
   }
-
-
 
 }
 

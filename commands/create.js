@@ -16,20 +16,25 @@ async function create() {
       message: "Enter Ticket Number:",
       format: (v) => `${v === "" ? "0000" : "" + v}`,
     },
+    {
+      type: "text",
+      name: "name",
+      message: "Enter Test Name:",
+    },
       {
       type: "select",
       name: "country",
       message: "Select Country:",
       choices: [
-        { title: "Germany", value: "www.douglas.de" },
-        { title: "France", value: "www.nocibe.fr" },
-        { title: "Poland", value: "www.douglas.pl" },
-        { title: "Italy", value: "www.douglas.it" },
-        { title: "Netherlands", value: "www.douglas.nl" },
-        { title: "Belgium", value: "www.douglas.be" },
-        { title: "Austria", value: "www.douglas.at" },
-        { title: "Switzerland", value: "www.douglas.ch" },
-        { title: "Spain", value: "www.douglas.es" },
+        { title: "Germany", value: "de" },
+        { title: "France", value: "fr" },
+        { title: "Poland", value: "pl" },
+        { title: "Italy", value: "it" },
+        { title: "Netherlands", value: "nl" },
+        { title: "Belgium", value: "be" },
+        { title: "Austria", value: "at" },
+        { title: "Switzerland", value: "ch" },
+        { title: "Spain", value: "es" },
         // Add other countries here
       ],
       initial: 0,
@@ -81,14 +86,14 @@ async function create() {
     const response = await prompts(questions);
 
     // Distruct and set data
-    let { ticket, country, newControl, variations, global } = response;
+    let { ticket, name, country, newControl, variations, global } = response;
 
     // If the user exits with Ctrl+C, exit
     if (ticket === undefined || !variations) return;
 
     // Create project directory
-    const projectName = `UX-${ticket}`;
-    const projectPath = path.join(process.cwd(), projectName);
+    const folderName = `UX-${ticket}-${name.split(" ").join("_")}`;
+    const projectPath = path.join(process.cwd(), folderName);
     fs.mkdirSync(projectPath);
 
     // Define the absolute path to your template directory
@@ -110,7 +115,7 @@ async function create() {
 
       console.log(
         chalk.gray(
-          `Navigate to ${projectName} directory and start coding! 🚀 \n`
+          `Navigate to ${folderName} directory and start coding! 🚀 \n`
         )
       );
 
@@ -196,7 +201,7 @@ ${global ? `share('ux${ticket}', () => {
     }).start();
 
     // Return data you want to pass to deploy.js
-    return { projectName, country, newControl, variations }; 
+    return { ticket, name, country, newControl, variations }; 
 }
 
 module.exports = create;
