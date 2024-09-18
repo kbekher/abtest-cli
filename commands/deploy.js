@@ -52,8 +52,6 @@ const sendRequest = async (method, url, token, data) => {
     data: JSON.stringify(data),
   };
 
-  // console.log('CONFIG:', config);
-
   try {
     const response = await axios(config);
     return response.data;
@@ -91,7 +89,7 @@ async function deploy() {
 
   const { ticket, name, country, isNewControl, variations } = inputData;
   const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name} --CLI`;
-  const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`;
+  const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`; //TODO: dinamically change SITE_ID & BASE_PROJECT_URL
 
   const spinner = ora({ text: chalk.bold.magentaBright("Creating experiment..."), spinner: "soccerHeader" }).start();
 
@@ -116,11 +114,12 @@ async function deploy() {
 
     spinner.succeed(chalk.green.bold("Experiment created successfully"));
 
+    // Handle Variations
     const variationIds = [];
 
-    // Handle Variations
     if (isNewControl) {
       const firstVariationId = experiment.variations[0];
+      // Rename first variation to New Control
       await manageVariation('patch', firstVariationId, { name: 'New Control', siteId: SITE_ID }, bearerToken);
       
       // Create variations
@@ -139,6 +138,7 @@ async function deploy() {
       variationIds.push(...createdVariations.map(v => v.id));
     }
 
+    // Add Variations to the experiment
     if (variationIds.length > 0) {
       const deviations = { ...experiment.deviations, ...Object.fromEntries(variationIds.map(id => [id, 0])) };
       await manageExperiment('patch', experiment.id, { deviations }, bearerToken);
