@@ -26,15 +26,15 @@ async function create() {
       name: "country",
       message: "Select Country:",
       choices: [
-        { title: "Germany", value: "de" },
-        { title: "France", value: "fr" },
-        { title: "Poland", value: "pl" },
-        { title: "Italy", value: "it" },
-        { title: "Netherlands", value: "nl" },
-        { title: "Belgium", value: "be" },
-        { title: "Austria", value: "at" },
-        { title: "Switzerland", value: "ch" },
-        { title: "Spain", value: "es" },
+        { title: "🇩🇪 Germany", value: "de" },
+        { title: "🇫🇷 France", value: "fr" },
+        { title: "🇵🇱 Poland", value: "pl" },
+        { title: "🇮🇹 Italy", value: "it" },
+        { title: "🇳🇱 Netherlands", value: "nl" },
+        { title: "🇧🇪 Belgium", value: "be" },
+        { title: "🇦🇹 Austria", value: "at" },
+        { title: "🇨🇭 Switzerland", value: "ch" },
+        { title: "🇪🇸 Spain", value: "es" },
         // Add other countries here
       ],
       initial: 0,
@@ -42,7 +42,7 @@ async function create() {
     },
     {
       type: "select",
-      name: "newControl",
+      name: "isNewControl",
       message: "Do you need a New Control?",
       choices: [
         { title: "Yes", value: true },
@@ -86,7 +86,7 @@ async function create() {
     const response = await prompts(questions);
 
     // Distruct and set data
-    let { ticket, name, country, newControl, variations, global } = response;
+    let { ticket, name, country, isNewControl, variations, global } = response;
 
     // If the user exits with Ctrl+C, exit
     if (ticket === undefined || !variations) return;
@@ -164,12 +164,15 @@ ${global ? `share('ux${ticket}', () => {
 
     const contentCSS = `$prefix: '.ux${ticket}__';`;
 
-    // Create control.js or new-control.js
-    fs.writeFileSync(
-      path.join(srcDir, `${newControl ? "new-" : ""}control.js`),
-      constructVariationContent(0),
-      "utf8"
-    );
+    // Create control.js
+    if (isNewControl) {
+      fs.writeFileSync(
+        path.join(srcDir, "control.js"),
+        constructVariationContent(0),
+        "utf8"
+      );
+    }
+
 
     // Create variations
     for (let i = 1; i <= variations; i++) {
@@ -201,7 +204,7 @@ ${global ? `share('ux${ticket}', () => {
     }).start();
 
     // Return data you want to pass to deploy.js
-    return { ticket, name, country, newControl, variations }; 
+    return { ticket, name, country, isNewControl, variations }; 
 }
 
 module.exports = create;
