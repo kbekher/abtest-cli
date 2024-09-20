@@ -9,9 +9,7 @@ const { getFormattedDate } = require('../utils/utils');
 
 // Constants
 const BASE_URL_API = 'https://api.kameleoon.com';
-const SEGMENT_ID_QA = 273199;
-const BASE_PROJECT_URL = "https://www.douglas.de/de"; // TODO: Change dynamically
-const SITE_ID = 25854; // TODO: Change dynamically
+const SEGMENT_ID_QA = 273199; // TODO: Change dynamically QA Audinces for other projects are added
 
 // Define API URLs
 const urls = {
@@ -70,6 +68,7 @@ const getAccessToken = async (clientId, clientSecret) => {
   return response.data.access_token;
 };
 
+
 // Create or Update Experiment
 const manageExperiment = async (method, experimentId = '', data, token) => {
   const url = experimentId ? `${urls.experimentList}/${experimentId}` : urls.experimentList;
@@ -89,7 +88,7 @@ async function deploy() {
 
   const { ticket, name, country, isNewControl, variations } = inputData;
   const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name} --CLI`;
-  const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`; //TODO: dinamically change SITE_ID & BASE_PROJECT_URL
+  const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`;
 
   const spinner = ora({ text: chalk.bold.magentaBright("Creating experiment..."), spinner: "soccerHeader" }).start();
 
@@ -98,17 +97,31 @@ async function deploy() {
     throw new Error("No credentials found in .env file");
   }
 
+  // return;
+
   try {
     const token = await getAccessToken(clientId, clientSecret);
     const bearerToken = `Bearer ${token}`;
 
+    const sites = await sendRequest('get', urls.siteList, bearerToken);
+    const project = sites.find(site => site.name === countryDomain);
+
+    // console.log('PROJECT', project);
+
+    if (!project) {
+      throw new Error(`Project with domain ${countryDomain} not found`);
+    }
+
+    const { url: baseProjectUrl, id: siteId } = project;
+    // console.log(baseProjectUrl, siteId);
+
     // Create Experiment
     const experimentData = {
-      baseURL: BASE_PROJECT_URL,
+      baseURL: baseProjectUrl,
       name: projectName,
-      siteId: SITE_ID,
-      targetingSegmentId: SEGMENT_ID_QA,
+      siteId: siteId,
       type: "DEVELOPER",
+      ...(country === 'de' && { targetingSegmentId: SEGMENT_ID_QA }) // TODO: change when QA Audinces are dynamic
     };
     const experiment = await manageExperiment('post', '', experimentData, bearerToken);
 
@@ -120,11 +133,11 @@ async function deploy() {
     if (isNewControl) {
       const firstVariationId = experiment.variations[0];
       // Rename first variation to New Control
-      await manageVariation('patch', firstVariationId, { name: 'New Control', siteId: SITE_ID }, bearerToken);
+      await manageVariation('patch', firstVariationId, { name: 'New Control', siteId: siteId }, bearerToken);
       
       // Create variations
       const creationPromises = Array.from({ length: variations }, (_, i) =>
-        manageVariation('post', '', { name: `Variant ${i + 1}`, siteId: SITE_ID }, bearerToken)
+        manageVariation('post', '', { name: `Variant ${i + 1}`, siteId: siteId }, bearerToken)
       );
       const createdVariations = await Promise.all(creationPromises);
       variationIds.push(...createdVariations.map(v => v.id));
@@ -132,7 +145,7 @@ async function deploy() {
     } else if (variations > 1) {
       // Create variations starting from V2
       const creationPromises = Array.from({ length: variations - 1 }, (_, i) =>
-        manageVariation('post', '', { name: `Variant ${i + 2}`, siteId: SITE_ID }, bearerToken)
+        manageVariation('post', '', { name: `Variant ${i + 2}`, siteId: siteId }, bearerToken)
       );
       const createdVariations = await Promise.all(creationPromises);
       variationIds.push(...createdVariations.map(v => v.id));
