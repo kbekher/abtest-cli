@@ -10,6 +10,7 @@ const { getFormattedDate } = require('../utils/utils');
 // Constants
 const BASE_URL_API = 'https://api.kameleoon.com';
 const SEGMENT_ID_QA = 273199; // TODO: Change dynamically QA Audinces for other projects are added
+// const SITE_ID_DE = 25854;
 
 // Define API URLs
 const urls = {
@@ -17,6 +18,7 @@ const urls = {
   siteList: `${BASE_URL_API}/sites`,
   experimentList: `${BASE_URL_API}/experiments`,
   variationsList: `${BASE_URL_API}/variations`,
+  goalsList: `${BASE_URL_API}/goals`,
 };
 
 const loadEnvFile = () => {
@@ -86,7 +88,7 @@ async function deploy() {
   const inputData = await create();
   if (!inputData) return;
 
-  const { ticket, name, country, isNewControl, variations } = inputData;
+  const { ticket, name, country, isNewControl, variations, goals } = inputData;
   const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name} --CLI`;
   const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`;
 
@@ -106,14 +108,11 @@ async function deploy() {
     const sites = await sendRequest('get', urls.siteList, bearerToken);
     const project = sites.find(site => site.name === countryDomain);
 
-    // console.log('PROJECT', project);
-
     if (!project) {
       throw new Error(`Project with domain ${countryDomain} not found`);
     }
 
     const { url: baseProjectUrl, id: siteId } = project;
-    // console.log(baseProjectUrl, siteId);
 
     // Create Experiment
     const experimentData = {
@@ -125,8 +124,6 @@ async function deploy() {
     };
     const experiment = await manageExperiment('post', '', experimentData, bearerToken);
 
-    spinner.succeed(chalk.green.bold("Experiment created successfully"));
-
     // Handle Variations
     const variationIds = [];
 
@@ -136,26 +133,47 @@ async function deploy() {
       await manageVariation('patch', firstVariationId, { name: 'New Control', siteId: siteId }, bearerToken);
       
       // Create variations
-      const creationPromises = Array.from({ length: variations }, (_, i) =>
+      const variationPromises = Array.from({ length: variations }, (_, i) =>
         manageVariation('post', '', { name: `Variant ${i + 1}`, siteId: siteId }, bearerToken)
       );
-      const createdVariations = await Promise.all(creationPromises);
+      const createdVariations = await Promise.all(variationPromises);
       variationIds.push(...createdVariations.map(v => v.id));
 
     } else if (variations > 1) {
       // Create variations starting from V2
-      const creationPromises = Array.from({ length: variations - 1 }, (_, i) =>
+      const variationPromises = Array.from({ length: variations - 1 }, (_, i) =>
         manageVariation('post', '', { name: `Variant ${i + 2}`, siteId: siteId }, bearerToken)
       );
-      const createdVariations = await Promise.all(creationPromises);
+      const createdVariations = await Promise.all(variationPromises);
       variationIds.push(...createdVariations.map(v => v.id));
     }
 
     // Add Variations to the experiment
     if (variationIds.length > 0) {
+      // Adding deviations is the only way to add variations to the experiment 
+      // Combine existind deviations with newly create variations
+      // And set traffic to newly created variations to 0 
       const deviations = { ...experiment.deviations, ...Object.fromEntries(variationIds.map(id => [id, 0])) };
       await manageExperiment('patch', experiment.id, { deviations }, bearerToken);
     }
+
+    if (goals.length > 0) {
+      // Handle Goals
+      const goalsIds = [];
+
+      // Create goals
+      const goalPromises = goals.map((goal) =>                                                            // These two have to be specified
+        sendRequest('post', urls.goalsList, bearerToken, { name: `UX-${ticket}: ${goal}`, siteId: siteId, type: 'CUSTOM', hasMultipleConversions: true })
+      );
+
+      const createdGoals = await Promise.all(goalPromises);
+      goalsIds.push(...createdGoals.map(v => v.id));
+
+      // Add goals to the experiment
+      await manageExperiment('patch', experiment.id, { goals: [...experiment.goals, ...goalsIds] }, bearerToken);
+    }
+
+    spinner.succeed(chalk.green.bold("Experiment created successfully"));
 
   } catch (error) {
     spinner.fail(chalk.red.bold("Error creating experiment"));

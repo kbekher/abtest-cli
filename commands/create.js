@@ -75,18 +75,46 @@ async function create() {
       initial: 0,
       hint: "- Return to submit",
     },
-    // {
-    //   type: "text",
-    //   name: "ticket",
-    //   message: "Enter Goal Name:",
-    //   format: (v) => `${v === "" ? "0000" : "" + v}`,
-    // },
+    {
+      type: "select",
+      name: "addGoals",
+      message: "Do you want to add goals?",
+      choices: [
+        { title: "Yes", value: true },
+        { title: "No", value: false },
+      ],
+      initial: 0,
+      hint: "- Return to submit",
+    }
   ];
 
     const response = await prompts(questions);
 
+      // If the user doesn't want to add goals, move on
+    if (response.addGoals) {
+      const goals = [];
+      let keepAsking = true;
+      
+      while (keepAsking) {
+        const goalResponse = await prompts({
+          type: "text",
+          name: "goalName",
+          message: "Enter Goal Name: (Leave empty to finish)"
+        });
+
+        if (goalResponse.goalName === "") {
+          keepAsking = false;  // End the loop if input is empty
+        } else {
+          goals.push(goalResponse.goalName);
+        }
+      }
+      
+      // Pass the goals array for further processing
+      response.goals = goals.length > 0 ? goals : false;
+    }
+
     // Distruct and set data
-    let { ticket, name, country, isNewControl, variations, global } = response;
+    const { ticket, name, country, isNewControl, variations, global, goals } = response;
 
     // If the user exits with Ctrl+C, exit
     if (ticket === undefined || !variations) return;
@@ -204,7 +232,7 @@ ${global ? `share('ux${ticket}', () => {
     }).start();
 
     // Return data you want to pass to deploy.js
-    return { ticket, name, country, isNewControl, variations }; 
+    return { ticket, name, country, isNewControl, variations, goals }; 
 }
 
 module.exports = create;
