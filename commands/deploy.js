@@ -157,7 +157,7 @@ async function deploy() {
       await manageExperiment('patch', experiment.id, { deviations }, bearerToken);
     }
 
-    if (goals.length > 0) {
+    if (goals) {
       // Handle Goals
       const goalsIds = [];
 
@@ -177,6 +177,7 @@ async function deploy() {
 
   } catch (error) {
     spinner.fail(chalk.red.bold("Error creating experiment"));
+    console.log(error);
     console.error(error.message);
   }
 }
