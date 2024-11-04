@@ -9,7 +9,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const fileNames = fs.readdirSync('./src').reduce((acc, v) => {
     let name = v;
-    if(name.indexOf('scss') !== -1) name = name.replace('.scss', '');
+    if (name.indexOf('scss') !== -1) name = name.replace('.scss', '');
 
     return { ...acc, [name]: `./src/${v}` };
 }, {});
@@ -52,13 +52,13 @@ module.exports = {
     },
     optimization: {
         minimizer: [
-          new TerserPlugin({
-            terserOptions: {
-              compress: {
-                drop_console: isProduction, // Remove or keep console.log statements
-              },
-            },
-          }),
+            new TerserPlugin({
+                terserOptions: {
+                    compress: {
+                        drop_console: isProduction, // Remove or keep console.log statements
+                    },
+                },
+            }),
             new CssMinimizerPlugin(),
         ],
         usedExports: true,
@@ -68,7 +68,7 @@ module.exports = {
     })],
     devServer: {
         static: {
-          directory: path.join(__dirname, 'dist'),
+            directory: path.join(__dirname, 'dist'),
         },
         compress: true,
         port: 8080,

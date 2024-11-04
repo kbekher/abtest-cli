@@ -7,15 +7,15 @@ const { createMessage } = require('../utils/utils');
 const program = new Command();
 
 program
-  .command("create")
-  .description("Create a new A/B Test project")
-  .action(() => {
-    createMessage('Welcome to A/B Test CLI!');
+    .command("create")
+    .description("Create a new A/B Test project")
+    .action(() => {
+        createMessage('Welcome to A/B Test CLI!');
 
-    setTimeout(() => {
-      deploy();
-    }, 500);
-  });
+        setTimeout(() => {
+            deploy();
+        }, 500);
+    });
 
 // Add more commands here
 

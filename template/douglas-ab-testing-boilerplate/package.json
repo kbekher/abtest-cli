@@ -1,39 +1,39 @@
 {
-  "name": "douglas-ab-testing-boilerplate",
-  "version": "1.0.0",
-  "description": "",
-  "scripts": {
-    "dev": "webpack serve",
-    "build": "webpack",
-    "build-dev": "NODE_ENV=development webpack",
-    "build-prod": "NODE_ENV=production webpack --mode=production"
-  },
-  "keywords": [
-    "ab-test",
-    "ab-testing",
-    "ab-test-boilerplate",
-    "ab-test-setup"
-  ],
-  "author": "Max Vith <ma.vith@douglas.de>",
-  "homepage": "https://www.douglas.de/",
-  "repository": "",
-  "bugs": "",
-  "sideEffects": false,
-  "devDependencies": {
-    "@babel/core": "^7.18.13",
-    "@babel/preset-env": "^7.18.10",
-    "babel-loader": "^8.2.5",
-    "css-loader": "^6.7.1",
-    "css-minimizer-webpack-plugin": "^4.0.0",
-    "sass": "^1.54.8",
-    "sass-loader": "^13.0.2",
-    "terser-webpack-plugin": "^5.3.6",
-    "webpack": "^5.90.3",
-    "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.11.0"
-  },
-  "dependencies": {
-    "@douglas.onsite.experimentation/douglas-ab-testing-toolkit": "^1.1.7",
-    "mini-css-extract-plugin": "^2.6.1"
-  }
+    "name": "douglas-ab-testing-boilerplate",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "dev": "webpack serve",
+        "build": "webpack",
+        "build-dev": "NODE_ENV=development webpack",
+        "build-prod": "NODE_ENV=production webpack --mode=production"
+    },
+    "keywords": [
+        "ab-test",
+        "ab-testing",
+        "ab-test-boilerplate",
+        "ab-test-setup"
+    ],
+    "author": "Max Vith <ma.vith@douglas.de>",
+    "homepage": "https://www.douglas.de/",
+    "repository": "",
+    "bugs": "",
+    "sideEffects": false,
+    "devDependencies": {
+        "@babel/core": "^7.18.13",
+        "@babel/preset-env": "^7.18.10",
+        "babel-loader": "^8.2.5",
+        "css-loader": "^6.7.1",
+        "css-minimizer-webpack-plugin": "^4.0.0",
+        "sass": "^1.54.8",
+        "sass-loader": "^13.0.2",
+        "terser-webpack-plugin": "^5.3.6",
+        "webpack": "^5.90.3",
+        "webpack-cli": "^4.10.0",
+        "webpack-dev-server": "^4.11.0"
+    },
+    "dependencies": {
+        "@douglas.onsite.experimentation/douglas-ab-testing-toolkit": "2.0.0",
+        "mini-css-extract-plugin": "^2.6.1"
+    }
 }
