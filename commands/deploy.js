@@ -22,8 +22,9 @@ const urls = {
 };
 
 const loadEnvFile = () => {
-    // Define the path to the .env file in the user's home directory
-    const envPath = path.join(require('os').homedir(), '.env');
+    // Define the path to the .kameleoon_env file in the user's home directory
+    // MV: using one file for our app (dashboard) and the cli (.kameleoon_env)
+    const envPath = path.join(require('os').homedir(), '.kameleoon_env');
 
     // Check if the .env file exists
     if (fs.existsSync(envPath)) {

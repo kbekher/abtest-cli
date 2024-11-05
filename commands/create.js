@@ -119,8 +119,10 @@ async function create() {
     // If the user exits with Ctrl+C, exit
     if (ticket === undefined || !variations) return;
 
-    // Create project directory
-    const folderName = `UX-${ticket}-${name.split(" ").join("_")}`;
+    // Create project directory (example: 1105-UX-0815-name)
+    const date = new Date();
+    const monthDay = `${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+    const folderName = `${monthDay}-UX-${ticket}-${name.split(" ").join("_")}`;
     const projectPath = path.join(process.cwd(), folderName);
     fs.mkdirSync(projectPath);
 
@@ -152,24 +154,31 @@ async function create() {
 
     // Create src directory
     const srcDir = path.join(projectPath, "src");
+
     fs.mkdirSync(srcDir);
 
     // Construct the base content for variations
     const constructVariationContent = (i) => {
 
-        return `import { hotjar, ${global ? 'exec' : ''} } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
+        return `import { elem, elemSync, qs, qsa, addTask, ${global ? 'exec' : ''} } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
 
 /**
  * Ticket
  * https://douglas-group.atlassian.net/browse/UX-${ticket}
 */
 
-(() => {
-  ${global ? `exec('ux${ticket}');` : ''}
+(async () => {
+    ${global ? `exec('ux${ticket}');` : ''}
 
-  const PREFIX = 'ux${ticket}__';
+    const PREFIX = 'ux${ticket}__';
 
-  hotjar(PREFIX + 'v${i}');\n
+    console.log(">>> UX-${ticket} is running, Variant ${i}");
+
+    const appContainer = await elemSync('#app');
+
+    addTask(PREFIX, () => {
+        console.log(">>> UX-${ticket} mutation observer executed");
+    });
 })();
 `;
     };
@@ -182,16 +191,30 @@ async function create() {
  * https://douglas-group.atlassian.net/browse/UX-${ticket}
  */
 
-${global ? `share('ux${ticket}', () => {
-  const PREFIX = 'ux${ticket}__';
-
-});` : `(() => {
-  const PREFIX = 'ux${ticket}__';
+${global ? `(() => { 
+    share('ux${ticket}', () => {
+        const PREFIX = 'ux${ticket}__';
+    }); 
+})();` : `(() => {
+    const PREFIX = 'ux${ticket}__';
 
 })();`}
 `;
 
-    const contentCSS = `$prefix: '.ux${ticket}__';`;
+    const contentCSS = `$prefix: '.ux${ticket}__';
+
+// #{$prefix} {
+// }
+
+// @media screen and (max-width: 400px) {
+// }
+
+// @media screen and (min-width: 768px) {
+// }
+
+// @media screen and (max-width: 1024px) {
+// }
+`;
 
     // Create control.js
     if (isNewControl) {
