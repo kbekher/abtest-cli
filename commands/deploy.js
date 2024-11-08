@@ -89,7 +89,7 @@ async function deploy() {
     const inputData = await create();
     if (!inputData) return;
 
-    const { ticket, name, country, isNewControl, variations, goals } = inputData;
+    const { destinationDir, ticket, name, country, isNewControl, variations, goals } = inputData;
     const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name} --CLI`;
     const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`;
 
@@ -103,7 +103,7 @@ async function deploy() {
     // return;
 
     try {
-        const token = await getAccessToken(clientId, clientSecret);
+        const token =  await getAccessToken(clientId, clientSecret);
         const bearerToken = `Bearer ${token}`;
 
         const sites = await sendRequest('get', urls.siteList, bearerToken);
@@ -124,6 +124,17 @@ async function deploy() {
             ...(country === 'de' && { targetingSegmentId: SEGMENT_ID_QA }) // TODO: change when QA Audinces are dynamic
         };
         const experiment = await manageExperiment('post', '', experimentData, bearerToken);
+
+        // Define a path to store experiment data for build command TODO: test <<<<<<<<<
+        const experimentDataPath = path.join(destinationDir, 'experimentData.json');
+
+        console.log('experimentDataPath', experimentDataPath); // TODO: delete
+
+        // Create an object to store both experiment ID and variation IDs
+        const kameleoonExperimentData = {
+            experimentId: experiment.id,
+            variationIds: experiment.variations,
+        };
 
         // Handle Variations
         const variationIds = [];
@@ -156,6 +167,12 @@ async function deploy() {
             // And set traffic to newly created variations to 0 
             const deviations = { ...experiment.deviations, ...Object.fromEntries(variationIds.map(id => [id, 0])) };
             await manageExperiment('patch', experiment.id, { deviations }, bearerToken);
+
+            // Update kameleoonExperimentData variations and sort in ascending order
+            kameleoonExperimentData.variationIds = [
+                ...kameleoonExperimentData.variationIds,
+                ...variationIds
+            ].sort((a, b) => a - b);
         }
 
         if (goals) {
@@ -173,6 +190,12 @@ async function deploy() {
             // Add goals to the experiment
             await manageExperiment('patch', experiment.id, { goals: [...experiment.goals, ...goalsIds] }, bearerToken);
         }
+
+
+        console.log('kameleoonExperimentData', kameleoonExperimentData); // TODO: delete
+
+        // Write the data to experimentData.json
+        fs.writeFileSync(experimentDataPath, JSON.stringify(kameleoonExperimentData, null, 2));
 
         spinner.succeed(chalk.green.bold("Experiment created successfully"));
 

@@ -256,7 +256,7 @@ ${global ? `(() => {
     }).start();
 
     // Return data you want to pass to deploy.js
-    return { ticket, name, country, isNewControl, variations, goals };
+    return { destinationDir, ticket, name, country, isNewControl, variations, goals };
 }
 
 module.exports = create;
