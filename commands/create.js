@@ -168,9 +168,9 @@ async function create() {
 */
 
 (async () => {
-    ${global ? `exec('ux${ticket}');` : ''}
-
     const PREFIX = 'ux${ticket}__';
+
+    ${global ? `exec('ux${ticket}');` : ''}
 
     console.log(">>> UX-${ticket} is running, Variant ${i}");
 
@@ -184,21 +184,20 @@ async function create() {
     };
 
     // Construct global.js content
-    const contentGlobal = `${global ? `import { share } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';` : ''}
+    const contentGlobal = `${global ? `import { elem, elemSync, qs, qsa, addTask, share } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';` : ''}
 
 /**
  * Ticket
  * https://douglas-group.atlassian.net/browse/UX-${ticket}
  */
 
-${global ? `(() => { 
-    share('ux${ticket}', () => {
-        const PREFIX = 'ux${ticket}__';
-    }); 
-})();` : `(() => {
+${global ? `(async () => { 
     const PREFIX = 'ux${ticket}__';
 
-})();`}
+    share('ux${ticket}', () => {
+
+    }); 
+})();` : ''}
 `;
 
     const contentCSS = `$prefix: '.ux${ticket}__';
