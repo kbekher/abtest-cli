@@ -20,11 +20,13 @@
     "bugs": "",
     "sideEffects": false,
     "devDependencies": {
+        "axios": "^1.7.7",
         "@babel/core": "^7.18.13",
         "@babel/preset-env": "^7.18.10",
         "babel-loader": "^8.2.5",
         "css-loader": "^6.7.1",
         "css-minimizer-webpack-plugin": "^4.0.0",
+        "dotenv": "^16.4.5",
         "sass": "^1.54.8",
         "sass-loader": "^13.0.2",
         "terser-webpack-plugin": "^5.3.6",

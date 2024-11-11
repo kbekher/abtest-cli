@@ -128,7 +128,7 @@ async function deploy() {
         // Define a path to store experiment data for build command TODO: test <<<<<<<<<
         const experimentDataPath = path.join(destinationDir, 'experimentData.json');
 
-        console.log('experimentDataPath', experimentDataPath); // TODO: delete
+        // console.log('experimentDataPath', experimentDataPath); // TODO: delete
 
         // Create an object to store both experiment ID and variation IDs
         const kameleoonExperimentData = {
@@ -169,10 +169,21 @@ async function deploy() {
             await manageExperiment('patch', experiment.id, { deviations }, bearerToken);
 
             // Update kameleoonExperimentData variations and sort in ascending order
-            kameleoonExperimentData.variationIds = [
+            const sortedVariationIds = kameleoonExperimentData.variationIds = [
                 ...kameleoonExperimentData.variationIds,
                 ...variationIds
             ].sort((a, b) => a - b);
+
+            // Convert sorted variation IDs into an object
+            kameleoonExperimentData.variationIds = sortedVariationIds.reduce((acc, id, index) => {
+                if (isNewControl && index === 0) {
+                    acc["control"] = id; // Set the first ID as "control" if NewControl is true
+                } else {
+                    const variationKey = `variation-${String(index + (isNewControl ? 0 : 1)).padStart(2, '0')}`;
+                    acc[variationKey] = id; // Set subsequent variations with numbered keys
+                }
+                return acc;
+            }, {});
         }
 
         if (goals) {

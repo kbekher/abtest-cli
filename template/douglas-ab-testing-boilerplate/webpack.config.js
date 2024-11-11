@@ -1,17 +1,11 @@
-// TODO: finish KameleoonPlugin,js with patch request to update variations with the minified css/js scripts
-// TODO: navigate into the test folder and test the build command
-// TODO: check if changes are applied in Kameleoon experiment 
-// TODO: check with both build and build-prod commands
-
 const fs = require('fs');
 const path = require('path');
-const axios = require("axios");
 const dotenv = require('dotenv');
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
-const KameleoonPlugin = require('./KameleoonPlugin');
+const KameleoonPlugin = require('./plugins/KameleoonPlugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -38,27 +32,6 @@ loadEnvFile();
 
 // Get Kameleoon credentials 
 const { CLIENT_ID: clientId, CLIENT_SECRET: clientSecret } = process.env;
-
-// Function to get Kameleoon access token
-const getAccessToken = async (clientId, clientSecret) => {
-    const response = await axios.post(
-        urls.authToken,
-        `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}`,
-        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-
-    return response.data.access_token;
-};
-
-// Get Kameleoon access token
-let token = '';
-
-try {
-    token = await getAccessToken(clientId, clientSecret);
-} catch (error) {
-    console.error('Error getting Kameleoon access token:', error);
-    // process.exit(1);  // Exit if no token is obtained
-}
 
 // Read experiment data from experimentData.json
 const experimentDataPath = path.join(__dirname, 'experimentData.json');
@@ -126,9 +99,10 @@ module.exports = {
             filename: '[name].css',
         }),
         new KameleoonPlugin({
-            apiKey: `Bearer ${token}`,
+            clientId,
+            clientSecret,
             experimentId: experimentData.experimentId,
-            variationId: experimentData.variationIds
+            variationIds: experimentData.variationIds,
         }),
     ],
     devServer: {
