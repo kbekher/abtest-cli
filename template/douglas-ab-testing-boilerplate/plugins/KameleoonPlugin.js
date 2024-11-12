@@ -31,39 +31,29 @@ class KameleoonPlugin {
                     token = await getAccessToken(this.clientId, this.clientSecret);
                 } catch (error) {
                     console.error('Error getting Kameleoon access token:', error);
-                    return callback(error); // If you want to stop execution if the token retrieval fails
+                    return callback(error); // stop execution if the token retrieval fails
                 }
 
                 const fileNames = fs.readdirSync('./dist').reduce((acc, v) => {
 
-                    const name = v.replace(/\.(css|js)$/, ''); // Remove extensions for a clean key
-                    const variationId = this.variationIds[name]; // Assuming variation IDs are keyed by file base name
+                    const name = v.replace(/\.(css|js)$/, ''); // Remove extensions
+                    const variationId = this.variationIds[name]; // variation IDs are keyed by file base name
 
-                    // Check if the name is "global" and handle it separately
-                    if (name === 'global') {
-                        // Initialize the global entry if it doesn't exist
-                        if (!acc.global) {
-                            acc.global = { commonCssCode: '', commonJavaScriptCode: '' };
-                        }
+                    if (!acc[name]) {
+                        acc[name] = { cssCode: '',  jsCode: '' };
+                    }
 
-                        // Populate commonCssCode and commonJavaScriptCode based on file type
-                        if (v.endsWith('.css')) {
-                            acc.global.cssCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
-                        } else if (v.endsWith('.js')) {
-                            acc.global.jsCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
-                        }
+                    // Update jsCode or cssCode based on the extension
+                    if (v.endsWith('.css')) {
+                        acc[name].cssCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
+                    } else if (v.endsWith('.js')) {
+                        acc[name].jsCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
+                    }
 
-                    } else if (variationId) {
-                        // Initialize the object if it doesn't exist
-                        if (!acc[name]) {
-                            acc[name] = { cssCode: '',  jsCode: '', variationId };
-                        }
-
-                        // Update jsCode or cssCode based on the extension
-                        if (v.endsWith('.css')) {
-                            acc[name].cssCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
-                        } else if (v.endsWith('.js')) {
-                            acc[name].jsCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
+                    if (name !== 'global') {
+                        acc[name] = {
+                            ...acc[name],
+                            variationId
                         }
                     }
 
@@ -72,7 +62,7 @@ class KameleoonPlugin {
 
                 // console.log('File Names:', fileNames); // TODO: delete
 
-                // Loop over each entry in fileNames to process CSS and JS files for each variation
+                // Loop over each entry in fileNames to process CSS and JS files for each variation/global
                 for (const [fileName, { cssCode, jsCode, variationId }] of Object.entries(fileNames)) {
                     let config = {
                         method: 'patch',

@@ -8,6 +8,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 const KameleoonPlugin = require('./plugins/KameleoonPlugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isBuildCommand = process.env.NODE_ENV === 'development' || isProduction;
 
 const fileNames = fs.readdirSync('./src').reduce((acc, v) => {
     let name = v;
@@ -37,7 +38,7 @@ const { CLIENT_ID: clientId, CLIENT_SECRET: clientSecret } = process.env;
 const experimentDataPath = path.join(__dirname, 'experimentData.json');
 let experimentData = {};
 
-if(fs.existsSync(experimentDataPath)) {
+if (fs.existsSync(experimentDataPath)) {
     experimentData = JSON.parse(fs.readFileSync(experimentDataPath));
 } else {
     console.error('Error reading or parsing experimentData.json');
@@ -98,12 +99,14 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name].css',
         }),
-        new KameleoonPlugin({
-            clientId,
-            clientSecret,
-            experimentId: experimentData.experimentId,
-            variationIds: experimentData.variationIds,
-        }),
+        ...(isBuildCommand ? [
+            new KameleoonPlugin({
+                clientId,
+                clientSecret,
+                experimentId: experimentData.experimentId,
+                variationIds: experimentData.variationIds,
+            })
+        ] : [])
     ],
     devServer: {
         static: {
