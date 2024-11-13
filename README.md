@@ -72,7 +72,7 @@ This includes the custom[`@douglas.onsite.experimentation/douglas-ab-testing-too
     ```bash
     npm run build
 
-or, to exclude `console.log` statements:
+    or, to exclude `console.log` statements:
 
-```bash
-npm run build-prod
+    ```bash
+    npm run build-prod
