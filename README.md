@@ -32,7 +32,7 @@ To install and use A/B Testing CLI, follow these steps:
 
 Before using the CLI, you need to configure your Kameleoon API credentials to enable interaction with the Kameleoon platform. Instead of placing the `.env` file in the project directory, the `.env` file should be created in your home directory for global access.
 
-### Steps to Create a `.env` File in the Home Directory:
+### Steps to Create a `.kameleoon_env` File in the Home Directory:
 
 1. **Open Terminal** and navigate to your home directory:
    ```bash
@@ -40,7 +40,7 @@ Before using the CLI, you need to configure your Kameleoon API credentials to en
 
 2. **Create or edit the .env file** in your home directory::
    ```bash
-   nano .env
+   nano .kameleoon_env
 
 3. **Add your Kameleoon credentials** (Kameleoon Profile > See my API credentials):
    ```bash
@@ -51,4 +51,29 @@ Before using the CLI, you need to configure your Kameleoon API credentials to en
    - Press `CTRL + O`, then press `Enter` to save.
    - Press `CTRL + X` to exit the editor.
 
-Now, the CLI will read your Kameleoon credentials from the .env file in your home directory whenever it's executed. 😉
+Now, the CLI will read your Kameleoon credentials from the .kameleoon_env file in your home directory to obtain Kameleoon access token whenever it's executed. 😉
+
+
+## CLI and Webpack Configuration Capabilities
+
+With the `abtest create` command, a folder is created on your machine, along with a corresponding experiment in Kameleoon using the provided input information. In the new folder, you'll find an initial setup ready for development.
+
+1. Install all necessary packages:
+   ```bash
+   npm install
+
+This includes the custom[`@douglas.onsite.experimentation/douglas-ab-testing-toolkit`](https://www.npmjs.com/package/@douglas.onsite.experimentation/douglas-ab-testing-toolkit) package, version 2.0.0, which is compatible with Kameleoon.
+
+2. Start development:
+    ```bash
+    npm run dev
+
+3. For production-ready code, use one of the following commands:
+    ```bash
+    npm run build
+
+or, to exclude `console.log` statements:
+    ```bash
+    npm run build-prod
+
+These commands generate a `dist` folder with minified scripts and update the corresponding variations/global code in Kameleoon for the current experiment.
