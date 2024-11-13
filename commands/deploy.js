@@ -125,10 +125,8 @@ async function deploy() {
         };
         const experiment = await manageExperiment('post', '', experimentData, bearerToken);
 
-        // Define a path to store experiment data for build command TODO: test <<<<<<<<<
+        // Define a path to store experiment data for build command 
         const experimentDataPath = path.join(destinationDir, 'experimentData.json');
-
-        // console.log('experimentDataPath', experimentDataPath); // TODO: delete
 
         // Create an object to store both experiment ID and variation IDs
         const kameleoonExperimentData = {
@@ -201,9 +199,6 @@ async function deploy() {
             // Add goals to the experiment
             await manageExperiment('patch', experiment.id, { goals: [...experiment.goals, ...goalsIds] }, bearerToken);
         }
-
-
-        console.log('kameleoonExperimentData', kameleoonExperimentData); // TODO: delete
 
         // Write the data to experimentData.json
         fs.writeFileSync(experimentDataPath, JSON.stringify(kameleoonExperimentData, null, 2));

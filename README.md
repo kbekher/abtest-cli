@@ -74,3 +74,10 @@ This includes the custom[`@douglas.onsite.experimentation/douglas-ab-testing-too
     npm run build-prod // no console.logs
 
 These commands generate a `dist` folder with minified scripts and update the corresponding variations/global code in Kameleoon for the current experiment. 🚀
+
+
+```bash
+ _______             __         ___     _____    ______        __  __
+/_  __(_)_ _  ___   / /____    / _ |  _/_/ _ )  /_  __/__ ___ / /_/ /
+ / / / /  ' \/ -_) / __/ _ \  / __ |_/_// _  |   / / / -_|_-</ __/_/ 
+/_/ /_/_/_/_/\__/  \__/\___/ /_/ |_/_/ /____/   /_/  \__/___/\__(_)  
