@@ -73,7 +73,8 @@ This includes the custom[`@douglas.onsite.experimentation/douglas-ab-testing-too
     npm run build
 
 or, to exclude `console.log` statements:
+
     ```bash
-    npm run build-prod
+    npm run build
 
 These commands generate a `dist` folder with minified scripts and update the corresponding variations/global code in Kameleoon for the current experiment.
