@@ -68,13 +68,11 @@ This includes the custom[`@douglas.onsite.experimentation/douglas-ab-testing-too
     ```bash
     npm run dev
 
-3. For production-ready code, use one of the following commands:
+3. For production-ready code, use one of the following commands, which will generate a `dist` folder with minified scripts and update the corresponding variations/global code in Kameleoon for the current experiment:
     ```bash
     npm run build
 
 or, to exclude `console.log` statements:
 
-    ```bash
-    npm run build
-
-These commands generate a `dist` folder with minified scripts and update the corresponding variations/global code in Kameleoon for the current experiment.
+```bash
+npm run build-prod
