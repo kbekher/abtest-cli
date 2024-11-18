@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv');
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
@@ -17,23 +16,6 @@ const fileNames = fs.readdirSync('./src').reduce((acc, v) => {
     return { ...acc, [name]: `./src/${v}` };
 }, {});
 
-// Function to load .kameleoon_env from user's home directory
-const loadEnvFile = () => {
-    const envPath = path.join(require('os').homedir(), '.kameleoon_env');
-    if (fs.existsSync(envPath)) {
-        dotenv.config({ path: envPath });
-    } else {
-        console.error('Error: .env file not found in user directory');
-        process.exit(1);
-    }
-};
-
-// Load environment variables
-loadEnvFile();
-
-// Get Kameleoon credentials 
-const { CLIENT_ID: clientId, CLIENT_SECRET: clientSecret } = process.env;
-
 // Read experiment data from experimentData.json
 const experimentDataPath = path.join(__dirname, 'experimentData.json');
 let experimentData = {};
@@ -44,7 +26,6 @@ if (fs.existsSync(experimentDataPath)) {
     console.error('Error reading or parsing experimentData.json');
     // process.exit(1); // Exit if experiment data is missing or invalid
 }
-
 
 module.exports = {
     mode: 'production',
@@ -101,8 +82,6 @@ module.exports = {
         }),
         ...(isBuildCommand ? [
             new KameleoonPlugin({
-                clientId,
-                clientSecret,
                 experimentId: experimentData.experimentId,
                 variationIds: experimentData.variationIds,
             })

@@ -1,121 +1,109 @@
 const fs = require('fs');
-const axios = require('axios');
+const path = require('path');
 
 class KameleoonPlugin {
-    constructor({ clientId, clientSecret, experimentId, variationIds }) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.experimentId = experimentId;
-        this.variationIds = variationIds;
-    }
+  constructor({ experimentId, variationIds }) {
+    this.experimentId = experimentId;
+    this.variationIds = variationIds;
+  }
 
-    apply(compiler) {
-        compiler.hooks.afterEmit.tapAsync('KameleoonPlugin', async (compilation, callback) => {
-            try {
+  apply(compiler) {
+    compiler.hooks.afterEmit.tapAsync('KameleoonPlugin', async (compilation, callback) => {
+      try {
 
-                // Function to get Kameleoon access token
-                const getAccessToken = async (clientId, clientSecret) => {
-                    const response = await axios.post(
-                        'https://api.kameleoon.com/oauth/token',
-                        `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}`,
-                        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-                    );
+        const getKameleoonData = async () => {
+          const kameleoonFile = fs.readFileSync(path.join(require('os').homedir(), '.kameleoon.json'));
 
-                    return response.data.access_token;
-                };
+          return JSON.parse(kameleoonFile);
+        };
 
-                // Get Kameleoon access token
-                let token;
+        const kameleoonJSON = await getKameleoonData();
 
-                try {
-                    token = await getAccessToken(this.clientId, this.clientSecret);
-                } catch (error) {
-                    console.error('Error getting Kameleoon access token:', error);
-                    return callback(error); // stop execution if the token retrieval fails
-                }
+        if (!kameleoonJSON) {
+          console.error("No credentials found in .kameleoon.json file");
+          throw new Error("No credentials found in .kameleoon.json file");
+        }
 
-                const fileNames = fs.readdirSync('./dist').reduce((acc, v) => {
-
-                    const name = v.replace(/\.(css|js)$/, ''); // Remove extensions
-                    const variationId = this.variationIds[name]; // variation IDs are keyed by file base name
-
-                    if (!acc[name]) {
-                        acc[name] = { cssCode: '',  jsCode: '' };
-                    }
-
-                    // Update jsCode or cssCode based on the extension
-                    if (v.endsWith('.css')) {
-                        acc[name].cssCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
-                    } else if (v.endsWith('.js')) {
-                        acc[name].jsCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
-                    }
-
-                    if (name !== 'global') {
-                        acc[name] = {
-                            ...acc[name],
-                            variationId
-                        }
-                    }
-
-                    return acc;
-                }, {});
-
-                // console.log('File Names:', fileNames); // TODO: delete
-
-                // Loop over each entry in fileNames to process CSS and JS files for each variation/global
-                for (const [fileName, { cssCode, jsCode, variationId }] of Object.entries(fileNames)) {
-                    let config = {
-                        method: 'patch',
-                        maxBodyLength: Infinity,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': '*/*',
-                            'Authorization': `Bearer ${token}`
-                        },
-                    };
-
-
-                    if (fileName === 'global') {
-                        const data = JSON.stringify({
-                            "commonCssCode": cssCode,
-                            "commonJavaScriptCode": jsCode,
-                        });
-
-                        config = {
-                            ...config,
-                            url: `https://api.kameleoon.com/experiments/${this.experimentId}`,
-                            data: data
-                        };
-
-                    } else {
-                        const data = JSON.stringify({
-                            "cssCode": cssCode,
-                            "experimentId": this.experimentId,
-                            "jsCode": jsCode,
-                            // in Kameleoon: Variation 1, New Control | in dist folder: variation-01, control
-                            // "name": fileName, // TODO: for safety, we could provide variation names, the name will be overwritten
-                        });
-
-                        config = {
-                            ...config,
-                            url: `https://api.kameleoon.com/variations/${variationId}`,
-                            data: data
-                        };
-                    }
-
-                    // Make an API request to update the Kameleoon variation with the combined code
-                    const response = await axios(config);
-
-                    console.log(`Updated ${fileName} successfully:`, response.data); // TODO: delete
-
-                }
-            } catch (error) {
-                console.error('Error updating variations:', error);
-            }
-
-            callback();
+        const tokenResponse = await fetch('https://api.kameleoon.com/oauth/token', {
+          method: 'POST',
+          body: new URLSearchParams({
+            'grant_type': 'client_credentials',
+            'client_id': kameleoonJSON.client_id,
+            'client_secret': kameleoonJSON.client_secret
+          })
         });
-    }
+        const tokenData = await tokenResponse.json();
+        
+        const fileNames = fs.readdirSync('./dist').reduce((acc, v) => {
+
+          const name = v.replace(/\.(css|js)$/, ''); // Remove extensions
+          const variationId = this.variationIds[name]; // variation IDs are keyed by file base name
+
+          if (!acc[name]) {
+            acc[name] = { cssCode: '', jsCode: '' };
+          }
+
+          // Update jsCode or cssCode based on the extension
+          if (v.endsWith('.css')) {
+            acc[name].cssCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
+          } else if (v.endsWith('.js')) {
+            acc[name].jsCode = fs.readFileSync(`./dist/${v}`, 'utf-8');
+          }
+
+          if (name !== 'global') {
+            acc[name] = {
+              ...acc[name],
+              variationId
+            }
+          }
+
+          return acc;
+        }, {});
+
+        // Loop over each entry in fileNames to process CSS and JS files for each variation/global
+        for (const [fileName, { cssCode, jsCode, variationId }] of Object.entries(fileNames)) {
+          const headers = {
+            'Content-Type': 'application/json',
+            'Accept': '*/*',
+            'Authorization': `Bearer ${tokenData.access_token}`
+          };
+      
+          let url;
+          let data;
+      
+          if (fileName === 'global') {
+            url = `https://api.kameleoon.com/experiments/${this.experimentId}`;
+            data = JSON.stringify({
+              "commonCssCode": cssCode,
+              "commonJavaScriptCode": jsCode,
+            });
+          } else {
+            url = `https://api.kameleoon.com/variations/${variationId}`;
+            data = JSON.stringify({
+              "cssCode": cssCode,
+              "experimentId": this.experimentId,
+              "jsCode": jsCode,
+            });
+          }
+      
+          const response = await fetch(url, {
+            method: 'PATCH',
+            headers,
+            body: data
+          });
+      
+          const responseData = await response.json();
+
+          console.log(`Updated ${fileName} successfully:`, responseData); // TODO: delete
+
+        }
+      } catch (error) {
+        console.error('Error updating variations:', error);
+      }
+
+      callback();
+    });
+  }
 }
 
 module.exports = KameleoonPlugin;

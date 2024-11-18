@@ -13,15 +13,10 @@
         "postinstall": "mkdir -p template/douglas-ab-testing-boilerplate"
     },
     "dependencies": {
-        "axios": "^1.7.7",
         "chalk": "^4.1.1",
         "cli-spinners": "^2.9.2",
         "commander": "^12.0.0",
-        "dotenv": "^16.4.5",
-        "esm": "^3.2.25",
         "figlet": "^1.7.0",
-        "inquirer": "^8.2.6",
-        "listr": "^0.14.3",
         "ncp": "^2.0.0",
         "ora": "^5.4.1",
         "prompts": "^2.4.2"
