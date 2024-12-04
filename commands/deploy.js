@@ -3,7 +3,9 @@ const fs = require('fs');
 const chalk = require("chalk");
 const ora = require("ora");
 const create = require('./create');
-const { getFormattedDate } = require('../utils/utils');
+
+const { createMessage, getFormattedDate } = require('../utils/utils');
+
 
 // Constants
 const BASE_URL_API = 'https://api.kameleoon.com';
@@ -191,6 +193,8 @@ async function deploy() {
     fs.writeFileSync(experimentDataPath, JSON.stringify(kameleoonExperimentData, null, 2));
 
     spinner.succeed(chalk.green.bold("Experiment created successfully"));
+
+    createMessage("Time to A/B Test!");
 
   } catch (error) {
     spinner.fail(chalk.red.bold("Error creating experiment"));

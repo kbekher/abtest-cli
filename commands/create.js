@@ -5,8 +5,6 @@ const prompts = require("prompts");
 const chalk = require("chalk");
 const ora = require("ora");
 
-const { createMessage } = require("../utils/utils");
-
 async function create() {
     // Get data from the user as a prompt
     const questions = [
@@ -148,9 +146,7 @@ async function create() {
                 `Navigate to ${folderName} directory and start coding! 🚀 \n`
             )
         );
-
-        createMessage("Time to A/B Test!");
-    });
+      });
 
     // Create src directory
     const srcDir = path.join(projectPath, "src");
