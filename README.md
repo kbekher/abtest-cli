@@ -30,7 +30,7 @@ To install and use A/B Testing CLI, follow these steps:
 
 ## Configuring Kameleoon Credentials
 
-Before using the CLI, you need to configure your Kameleoon API credentials to enable interaction with the Kameleoon platform. Instead of placing the `.env` file in the project directory, the `.env` file should be created in your home directory for global access.
+Before using the CLI, you need to configure your Kameleoon API credentials to enable interaction with the Kameleoon platform. Instead of placing the `.kameleoon_env` file in the project directory, the `.kameleoon_env` file should be created in your home directory for global access.
 
 ### Steps to Create a `.kameleoon_env` File in the Home Directory:
 
