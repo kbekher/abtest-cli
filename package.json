@@ -1,31 +1,41 @@
 {
-    "name": "ab-test-cli",
-    "version": "1.0.0",
-    "description": "A command line interface tool designed to streamline the creation of A/B test boilerplate code.",
-    "main": "index.js",
-    "bin": {
-        "abtest": "./bin/abtest.js"
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "scripts": {
-        "postinstall": "mkdir -p template/douglas-ab-testing-boilerplate"
-    },
-    "dependencies": {
-        "chalk": "^4.1.1",
-        "cli-spinners": "^2.9.2",
-        "commander": "^12.0.0",
-        "figlet": "^1.7.0",
-        "ncp": "^2.0.0",
-        "ora": "^5.4.1",
-        "prompts": "^2.4.2"
-    },
-    "files": [
-        "bin/",
-        "src/",
-        "template/"
-    ],
-    "author": "",
-    "license": "MIT"
+  "name": "ab-test-cli",
+  "version": "1.0.0",
+  "description": "A command line interface tool designed to streamline the creation of A/B test boilerplate code, as well as creation and updates of experiments in Kameleoon.",
+  "homepage": "https://www.douglas.de/de",
+  "license": "MIT",
+  "author": {
+    "name": "Kristina Bekher",
+    "email": "k.bekher@douglas.de"
+  },
+  "contributors": [
+    {
+      "name": "Max Vith",
+      "email": "ma.vith@douglas.de"
+    }
+  ],
+  "main": "index.js",
+  "bin": {
+    "abtest": "./bin/abtest.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "postinstall": "mkdir -p template/douglas-ab-testing-boilerplate"
+  },
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "cli-spinners": "^2.9.2",
+    "commander": "^12.0.0",
+    "figlet": "^1.7.0",
+    "ncp": "^2.0.0",
+    "ora": "^5.4.1",
+    "prompts": "^2.4.2"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "template/"
+  ]
 }
