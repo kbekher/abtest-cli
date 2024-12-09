@@ -120,7 +120,7 @@ async function deploy() {
     // Create an object to store both experiment ID and variation IDs
     const kameleoonExperimentData = {
       experimentId: experiment.id,
-      variationIds: experiment.variations,
+      variationIds: {}
     };
 
     // Handle Variations
@@ -156,10 +156,10 @@ async function deploy() {
       await manageExperiment('PATCH', experiment.id, { deviations }, bearerToken);
 
       // Update kameleoonExperimentData variations and sort in ascending order
-      const sortedVariationIds = kameleoonExperimentData.variationIds = [
-        ...kameleoonExperimentData.variationIds,
-        ...variationIds
-      ].sort((a, b) => a - b);
+      const sortedVariationIds = [
+        ...experiment.variations,
+        ...variationIds,
+      ].sort((a, b) => a - b); // Combine and sort IDs
 
       // Convert sorted variation IDs into an object
       kameleoonExperimentData.variationIds = sortedVariationIds.reduce((acc, id, index) => {
