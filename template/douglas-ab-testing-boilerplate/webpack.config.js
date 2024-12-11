@@ -4,6 +4,7 @@ const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
+const WrapperPlugin = require('wrapper-webpack-plugin');
 const KameleoonPlugin = require('./plugins/KameleoonPlugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -81,11 +82,29 @@ module.exports = {
             filename: '[name].css',
         }),
         ...(isBuildCommand ? [
+            // Upload source code to Kameleoon
             new KameleoonPlugin({
                 experimentId: experimentData.experimentId,
                 variationIds: experimentData.variationIds,
             })
-        ] : [])
+        ] : [
+            // Wrap source code into interval waitong for Kameleoon library to load
+            new WrapperPlugin({
+                test: /\.js$/,
+                header: `
+                (function() {
+                    const waitForKameleoon = setInterval(() => {
+                        if (typeof Kameleoon !== 'undefined') {
+                            clearInterval(waitForKameleoon);
+                `,
+                footer: `
+                            console.log('Kameleoon library loaded, executing code.');
+                        }
+                    }, 100);
+                })();
+                `
+            })
+        ])
     ],
     devServer: {
         static: {

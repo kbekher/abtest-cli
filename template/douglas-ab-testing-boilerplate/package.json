@@ -29,7 +29,8 @@
         "terser-webpack-plugin": "^5.3.6",
         "webpack": "^5.90.3",
         "webpack-cli": "^4.10.0",
-        "webpack-dev-server": "^4.11.0"
+        "webpack-dev-server": "^4.11.0",
+        "wrapper-webpack-plugin": "^2.2.2"
     },
     "dependencies": {
         "@douglas.onsite.experimentation/douglas-ab-testing-toolkit": "2.0.1",
