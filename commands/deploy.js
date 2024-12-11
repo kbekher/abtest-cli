@@ -1,11 +1,11 @@
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
 const chalk = require("chalk");
 const ora = require("ora");
 const create = require('./create');
 
 const { createMessage, getFormattedDate } = require('../utils/utils');
-
 
 // Constants
 const BASE_URL_API = 'https://api.kameleoon.com';
@@ -192,7 +192,29 @@ async function deploy() {
     // Write the data to experimentData.json
     fs.writeFileSync(experimentDataPath, JSON.stringify(kameleoonExperimentData, null, 2));
 
-    spinner.succeed(chalk.green.bold("Experiment created successfully"));
+    spinner.succeed(chalk.green.bold("Kameleoon experiment created successfully!"));
+
+
+    // Run npm install
+    try {
+      console.log('Navigating into the folder...');
+      process.chdir(destinationDir);
+
+      console.log('Running npm install...');
+      execSync('npm install', { stdio: 'inherit' });
+
+      spinner.succeed(chalk.green.bold('npm install completed successfully!'));
+
+    } catch (error) {
+      spinner.fail(chalk.red.bold('npm install failed:', error.message));
+      process.exit(1); // Exit with error status
+    }
+
+    console.log(
+      chalk.gray(
+          `Navigate to the directory: ' ${chalk.yellow('cd')} ${chalk.blue(destinationDir.split('/').pop())} ' and start developing: ' ${chalk.yellow('npm run dev')} ' \n`
+      )
+    );
 
     createMessage("Time to A/B Test!");
 

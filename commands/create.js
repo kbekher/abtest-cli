@@ -139,14 +139,8 @@ async function create() {
         }
 
         // Provide feedback to user
-        spinner.succeed(chalk.green.bold("Directory was created successfully."));
-
-        console.log(
-            chalk.gray(
-                `Navigate to ${folderName} directory and start coding! 🚀 \n`
-            )
-        );
-      });
+        spinner.succeed(chalk.green.bold(`Directory ${folderName} was created successfully. 🚀 \n`));
+    });
 
     // Create src directory
     const srcDir = path.join(projectPath, "src");
