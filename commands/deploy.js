@@ -212,7 +212,7 @@ async function deploy() {
 
     console.log(
       chalk.gray(
-          `Navigate to the directory: ' ${chalk.yellow('cd')} ${chalk.blue(destinationDir.split('/').pop())} ' and start developing: ' ${chalk.yellow('npm run dev')} ' \n`
+          `Navigate to the directory: ${chalk.yellow('cd')} ${chalk.blue(destinationDir.split('/').pop())} and start developing: ${chalk.yellow('npm run dev')} \n`
       )
     );
 

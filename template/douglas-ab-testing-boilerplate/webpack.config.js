@@ -4,28 +4,76 @@ const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
-const WrapperPlugin = require('wrapper-webpack-plugin');
 const KameleoonPlugin = require('./plugins/KameleoonPlugin');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isBuildCommand = process.env.NODE_ENV === 'development' || isProduction;
 
-const fileNames = fs.readdirSync('./src').reduce((acc, v) => {
-    let name = v;
-    if (name.indexOf('scss') !== -1) name = name.replace('.scss', '');
-
-    return { ...acc, [name]: `./src/${v}` };
+const fileNames = fs.readdirSync('./src').filter(file => file !== 'bundle.js').reduce((acc, file) => {
+    let name = file.replace('.scss', '');
+    return { ...acc, [name]: `./src/${file}` };
 }, {});
+
+// Usage Example: VARIATION=variation-02 npm run dev
+const selectedVariation = process.env.VARIATION || 'variation-01';
+const selectedFiles = Object.keys(fileNames)
+    .filter(file => new RegExp(`^(global|goals|${selectedVariation})\\.js$`).test(file))    
+    .reduce((acc, file) => ({ ...acc, [file]: fileNames[file] }), {});
+    
+// console.log('Selected files:', selectedFiles);
+
+const srcDir = path.resolve(__dirname, 'src');
+const bundlePath = path.join(srcDir, 'bundle.js');
+
+const wrapWithInterval = (imports, content) => `
+import { ${imports} } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
+(function() {
+    const waitForKameleoon = setInterval(() => {
+        if (typeof Kameleoon === 'object') {
+            console.log('Kameleoon library loaded, executing code.');
+            clearInterval(waitForKameleoon);
+            ${content}
+        }
+    }, 100);
+})();
+`;
+
+const imports = new Set();
+const mainContents = [];
+
+// Combine the contents of the selected files
+Object.values(selectedFiles).forEach(filePath => {
+    if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const importMatches = content.match(/import\s+\{([^}]+)\}\s+from\s+['"][^'"]+['"];?/gm);
+
+        // Extract import between {} into a set, to avoid dublicated imports
+        importMatches?.forEach(importStatement => {
+            const matchedValues = importStatement.match(/import\s+\{([^}]+)\}/);
+            if (matchedValues) {
+                matchedValues[1].trim().split(',').forEach(value => imports.add(value));
+            }
+        });
+
+        // Push file main content without imports
+        mainContents.push(content.replace(importMatches.join('\n'), ''));
+    } else {
+        console.warn(`Warning: File not found: ${filePath}`);
+    }
+});
+
+// Write the combined content wrapped in an interval to bundle.js
+fs.writeFileSync(bundlePath, wrapWithInterval([...imports].join(','), mainContents.join('\n')));
+
+console.log('Created src/bundle.js with the selected files wrapped in an interval.');
 
 // Read experiment data from experimentData.json
 const experimentDataPath = path.join(__dirname, 'experimentData.json');
-let experimentData = {};
+let experimentData = fs.existsSync(experimentDataPath) ? JSON.parse(fs.readFileSync(experimentDataPath)) : {};
 
-if (fs.existsSync(experimentDataPath)) {
-    experimentData = JSON.parse(fs.readFileSync(experimentDataPath));
-} else {
+if (!experimentData) {
     console.error('Error reading or parsing experimentData.json');
-    // process.exit(1); // Exit if experiment data is missing or invalid
+    // process.exit(1); // Uncomment if necessary
 }
 
 module.exports = {
@@ -41,22 +89,22 @@ module.exports = {
     },
     module: {
         rules: [
-            // {
-            //     test: /\.js$/,
-            //     exclude: /node_modules/,
-            //     use: {
-            //         loader: 'babel-loader',
-            //         options: {
-            //             presets: [[
-            //                 "@babel/preset-env",
-            //             ]],
-            //         }
-            //     }
-            // },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [[
+                            "@babel/preset-env",
+                        ]],
+                    }
+                }
+            },
             {
                 test: /.s?css$/,
                 use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
-            },
+            }
         ],
     },
     performance: {
@@ -72,6 +120,7 @@ module.exports = {
                         drop_console: isProduction, // Remove or keep console.log statements
                     },
                 },
+                extractComments: false, // prevent LiCENSE file creation
             }),
             new CssMinimizerPlugin(),
         ],
@@ -87,24 +136,7 @@ module.exports = {
                 experimentId: experimentData.experimentId,
                 variationIds: experimentData.variationIds,
             })
-        ] : [
-            // Wrap source code into interval waitong for Kameleoon library to load
-            new WrapperPlugin({
-                test: /\.js$/,
-                header: `
-                (function() {
-                    const waitForKameleoon = setInterval(() => {
-                        if (typeof Kameleoon !== 'undefined') {
-                            clearInterval(waitForKameleoon);
-                `,
-                footer: `
-                            console.log('Kameleoon library loaded, executing code.');
-                        }
-                    }, 100);
-                })();
-                `
-            })
-        ])
+        ] : [])
     ],
     devServer: {
         static: {

@@ -57,6 +57,11 @@ Run with yarn:
 yarn dev 
 ```
 
+Run specific variation: 
+```sh
+VARIATION=variation-02 npm run dev 
+```
+
 Now a [watch](https://webpack.js.org/configuration/watch/) task will run in the background. 
 
 > Webpack can watch files and recompile whenever they change. This page explains how to enable this and a couple of tweaks you can make if watching does not work properly for you.
@@ -71,6 +76,10 @@ npm run build
 Build with yarn:
 ```sh
 yarn build 
+```
+Production build:
+```sh
+npm run build-prod
 ```
 
 As soon as you save a file in the `./src` folder, it is automatically generated in the `./dist` folder. You can use this JavaScript and CSS files for your local development with e.g. [Tampermonkey](https://www.tampermonkey.net/) as well as in your Testing-Tool. 
@@ -110,7 +119,7 @@ After you have installed [Tampermonkey](https://www.tampermonkey.net/) copy the 
     const source = '//localhost:8080/';
 
     /** DO NOT MODIFY BELOW THIS LINE ;) **/
-    console.log(`%c* Tampermonkey loaded: Experiment - ${variation} *`, 'background:#336578;color:white;font-size:12px;');
+    console.log(`%c* Tampermonkey loaded: Experiment - ${variation} *`, 'background:#336578;color:white;font-size:14px;');
 
     const headTag = document.head || document.getElementsByTagName('head')[0];
 
@@ -124,10 +133,10 @@ After you have installed [Tampermonkey](https://www.tampermonkey.net/) copy the 
 
     const cssTag = document.createElement('style');
     cssTag.setAttribute('style-src', 'unsafe-inline');
-    cssTag.appendChild(document.createTextNode(`@import url("${source}${variation}.css");`));
+    cssTag.appendChild(document.createTextNode(`@import url("${source}${variation}.css");#webpack-dev-server-client-overlay{display:none}`));
     headTag.appendChild(cssTag);
 
-    if(global){
+     /** if(global){
 
         const globalJSTag = document.createElement('script');
         globalJSTag.src = `${source}global.js`;
@@ -138,6 +147,12 @@ After you have installed [Tampermonkey](https://www.tampermonkey.net/) copy the 
 
     const jsTag = document.createElement('script');
     jsTag.src = `${source}${variation}.js`;
+    jsTag.type = 'text/javascript';
+    jsTag.setAttribute('script-src', 'self');
+    headTag.appendChild(jsTag); **/
+
+    const jsTag = document.createElement('script');
+    jsTag.src = `${source}bundle.js`;
     jsTag.type = 'text/javascript';
     jsTag.setAttribute('script-src', 'self');
     headTag.appendChild(jsTag);
