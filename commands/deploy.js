@@ -118,7 +118,7 @@ async function deploy() {
     const experimentDataPath = path.join(destinationDir, 'experimentData.json');
 
     // Create an object to store both experiment ID and variation IDs
-    const kameleoonExperimentData = {
+    const kameleoonExperimentData = { 
       experimentId: experiment.id,
       variationIds: {}
     };
@@ -160,6 +160,8 @@ async function deploy() {
         ...experiment.variations,
         ...variationIds,
       ].sort((a, b) => a - b); // Combine and sort IDs
+
+      console.log('Sorted variation ids:', sortedVariationIds);
 
       // Convert sorted variation IDs into an object
       kameleoonExperimentData.variationIds = sortedVariationIds.reduce((acc, id, index) => {
