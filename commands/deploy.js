@@ -161,8 +161,6 @@ async function deploy() {
         ...variationIds,
       ].sort((a, b) => a - b); // Combine and sort IDs
 
-      console.log('Sorted variation ids:', sortedVariationIds);
-
       // Convert sorted variation IDs into an object
       kameleoonExperimentData.variationIds = sortedVariationIds.reduce((acc, id, index) => {
         if (isNewControl && index === 0) {
