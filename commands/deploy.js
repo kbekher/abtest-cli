@@ -189,6 +189,7 @@ async function deploy() {
       await manageExperiment('PATCH', experiment.id, { goals: [...experiment.goals, ...goalsIds] }, bearerToken);
     }
 
+    // TODO: 
     // Write the data to experimentData.json
     fs.writeFileSync(experimentDataPath, JSON.stringify(kameleoonExperimentData, null, 2));
 
