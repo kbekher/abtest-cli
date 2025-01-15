@@ -37,6 +37,7 @@ class KameleoonPlugin {
         const fileNames = fs.readdirSync('./dist').reduce((acc, v) => {
 
           const name = v.replace(/\.(css|js)$/, ''); // Remove extensions
+          if (name === 'bundle') return acc; // Skip processing for 'bundle'
           const variationId = this.variationIds[name]; // variation IDs are keyed by file base name
 
           if (!acc[name]) {
@@ -70,7 +71,7 @@ class KameleoonPlugin {
       
           let url;
           let data;
-      
+
           if (fileName === 'global') {
             url = `https://api.kameleoon.com/experiments/${this.experimentId}`;
             data = JSON.stringify({
@@ -94,7 +95,7 @@ class KameleoonPlugin {
       
           const responseData = await response.json();
 
-          console.log(`Updated ${fileName} successfully:`, responseData); // TODO: delete
+          console.log(`Updated ${fileName}:`, responseData); // TODO: delete
 
         }
       } catch (error) {
