@@ -4,7 +4,8 @@
     "description": "",
     "scripts": {
         "dev": "webpack serve",
-        "build": "NODE_ENV=development webpack",
+        "build": "webpack",
+        "build-dev": "NODE_ENV=development webpack",
         "build-prod": "NODE_ENV=production webpack --mode=production"
     },
     "keywords": [

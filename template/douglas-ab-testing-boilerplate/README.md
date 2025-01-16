@@ -72,12 +72,15 @@ Build with npm:
 ```sh
 npm run build 
 ```
-
 Build with yarn:
 ```sh
 yarn build 
 ```
-Production build:
+Development build (includes console.logs and Kameleoon uploads): 
+```sh
+npm run build-dev
+```
+Production build (Kameleoon uploads without console.logs):
 ```sh
 npm run build-prod
 ```
