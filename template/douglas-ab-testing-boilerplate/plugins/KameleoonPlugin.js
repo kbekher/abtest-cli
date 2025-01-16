@@ -95,7 +95,7 @@ class KameleoonPlugin {
       
           const responseData = await response.json();
 
-          console.log(`Updated ${fileName}:`, responseData); // TODO: delete
+          console.log(`Updated ${fileName}:`, responseData);
 
         }
       } catch (error) {

@@ -90,6 +90,7 @@ if (!experimentData) {
 module.exports = {
     mode: 'production',
     entry: fileNames,
+    watch: true,
     watchOptions: {
         ignored: '**/node_modules',
     },
