@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const open = require('open');
 
 class KameleoonPlugin {
   constructor({ experimentId, variationIds }) {
@@ -33,7 +34,7 @@ class KameleoonPlugin {
           })
         });
         const tokenData = await tokenResponse.json();
-        
+
         const fileNames = fs.readdirSync('./dist').reduce((acc, v) => {
 
           const name = v.replace(/\.(css|js)$/, ''); // Remove extensions
@@ -68,7 +69,7 @@ class KameleoonPlugin {
             'Accept': '*/*',
             'Authorization': `Bearer ${tokenData.access_token}`
           };
-      
+
           let url;
           let data;
 
@@ -86,18 +87,39 @@ class KameleoonPlugin {
               "jsCode": jsCode,
             });
           }
-      
+
           const response = await fetch(url, {
             method: 'PATCH',
             headers,
             body: data
           });
-      
+
           const responseData = await response.json();
 
-          console.log(`Updated ${fileName}:`, responseData);
-
+          if (response.ok) {
+            console.log(`Updated ${fileName}:`, responseData);
+          } else {
+            console.error(`Error updating ${fileName}:`, error);
+          }
         }
+
+        // Now trigger the experiment simulation
+        const simulationUrl = `https://api.kameleoon.com/experiments/simulate/${this.experimentId}`;
+        const simulationResponse = await fetch(simulationUrl, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${tokenData.access_token}` },
+        });
+
+        // Get kameleoon simulation link
+        if (simulationResponse.ok) {
+          const responseText = await simulationResponse.text(); // Get the response body as text
+
+          //TODO: Open link in browser 
+          await open(responseText); 
+          console.log('Successfully accessed simulation URL:', responseText);
+        }
+
+
       } catch (error) {
         console.error('Error updating variations:', error);
       }
