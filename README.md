@@ -58,11 +58,8 @@ Now, the CLI will read your Kameleoon credentials from the .kameleoon_env file i
 
 With the `abtest create` command, a folder is created on your machine, along with a corresponding experiment in Kameleoon using the provided input information. In the new folder, you'll find an initial setup ready for development.
 
-1. Install all necessary packages:
-   ```bash
-   npm install
-
-This includes the custom[`@douglas.onsite.experimentation/douglas-ab-testing-toolkit`](https://www.npmjs.com/package/@douglas.onsite.experimentation/douglas-ab-testing-toolkit) package, version 2.0.0, which is compatible with Kameleoon.
+1. Naviagte to the create folder, all necessary packages are already install by default.
+Packages include the custom[`@douglas.onsite.experimentation/douglas-ab-testing-toolkit`](https://www.npmjs.com/package/@douglas.onsite.experimentation/douglas-ab-testing-toolkit) package, version ^2.0.0, which is compatible with Kameleoon (older versions compatible with Adobe Target).
 
 2. Start development:
     ```bash
@@ -70,8 +67,9 @@ This includes the custom[`@douglas.onsite.experimentation/douglas-ab-testing-too
 
 3. For production-ready code, use one of the following commands:
     ```bash
-    npm run build
-    npm run build-prod // no console.logs
+    npm run build // local build
+    npm run build-dev // build with logs and Kameleoon uploads
+    npm run build-prod // build without logs and with Kameleoon uploads
 
 These commands generate a `dist` folder with minified scripts and update the corresponding variations/global code in Kameleoon for the current experiment. 🚀
 

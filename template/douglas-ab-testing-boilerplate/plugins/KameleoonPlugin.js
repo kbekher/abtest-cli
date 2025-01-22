@@ -6,11 +6,16 @@ class KameleoonPlugin {
   constructor({ experimentId, variationIds }) {
     this.experimentId = experimentId;
     this.variationIds = variationIds;
+    this.timeoutId = null; // To store the timeout reference
   }
 
   apply(compiler) {
     compiler.hooks.afterEmit.tapAsync('KameleoonPlugin', async (compilation, callback) => {
       try {
+        // Cancel any existing timeout if new build is triggered
+        if (this.timeoutId) {
+          clearTimeout(this.timeoutId);
+        }
 
         const getKameleoonData = async () => {
           const kameleoonFile = fs.readFileSync(path.join(require('os').homedir(), '.kameleoon.json'));
@@ -107,18 +112,23 @@ class KameleoonPlugin {
         const simulationUrl = `https://api.kameleoon.com/experiments/simulate/${this.experimentId}`;
         const simulationResponse = await fetch(simulationUrl, {
           method: 'GET',
-          headers: { 'Authorization': `Bearer ${tokenData.access_token}` },
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Content-Type': 'application/json',
+          },
         });
 
         // Get kameleoon simulation link
         if (simulationResponse.ok) {
           const responseText = await simulationResponse.text(); // Get the response body as text
 
-          //TODO: Open link in browser 
-          await open(responseText); 
-          console.log('Successfully accessed simulation URL:', responseText);
-        }
+          // Set a timeout to open the link after 10 seconds
+          this.timeoutId = setTimeout(async () => {
+            await open(responseText);
+            console.log('Successfully accessed simulation URL:', responseText);
+          }, 10000);
 
+        }
 
       } catch (error) {
         console.error('Error updating variations:', error);
