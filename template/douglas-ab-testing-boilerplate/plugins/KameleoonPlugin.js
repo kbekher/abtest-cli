@@ -9,6 +9,46 @@ class KameleoonPlugin {
     this.timeoutId = null; // To store the timeout reference
   }
 
+  // Helper method to read and parse JSON files
+  readJsonFile(filePath) {
+    try {
+      const rawData = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(rawData);
+    } catch (error) {
+      console.error(`Error reading JSON file at ${filePath}:`, error);
+      throw error;
+    }
+  }
+
+  // Helper method for sending requests to Kameleoon
+  async sendKameleoonRequest(url, method, data, token) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': '*/*',
+      'Authorization': `Bearer ${token}`
+    };
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify(data),
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        console.log('Request successful:', responseData);
+        return responseData;
+      } else {
+        console.error('Request failed:', responseData);
+        throw new Error(`Request to ${url} failed: ${responseData.message}`);
+      }
+    } catch (error) {
+      console.error('Error during request:', error);
+      throw error;
+    }
+  }
+
   apply(compiler) {
     compiler.hooks.afterEmit.tapAsync('KameleoonPlugin', async (compilation, callback) => {
       try {
@@ -17,13 +57,8 @@ class KameleoonPlugin {
           clearTimeout(this.timeoutId);
         }
 
-        const getKameleoonData = async () => {
-          const kameleoonFile = fs.readFileSync(path.join(require('os').homedir(), '.kameleoon.json'));
-
-          return JSON.parse(kameleoonFile);
-        };
-
-        const kameleoonJSON = await getKameleoonData();
+        // Fetch Kameleoon credentials from the file
+        const kameleoonJSON = this.readJsonFile(path.join(require('os').homedir(), '.kameleoon.json'));
 
         if (!kameleoonJSON) {
           console.error("No credentials found in .kameleoon.json file");
@@ -39,11 +74,18 @@ class KameleoonPlugin {
           })
         });
         const tokenData = await tokenResponse.json();
+        const accessToken = tokenData.access_token;
 
+        if (!accessToken) {
+          console.error("Failed to retrieve access token.");
+          throw new Error("Failed to retrieve access token.");
+        }
+
+        // Read and process the CSS and JS files in the dist folder
         const fileNames = fs.readdirSync('./dist').reduce((acc, v) => {
 
           const name = v.replace(/\.(css|js)$/, ''); // Remove extensions
-          if (name === 'bundle') return acc; // Skip processing for 'bundle'
+          if (!(name.includes('control') || name.includes('variation') || name.includes('global'))) return acc; // Skip files that are neither control, variation, nor global
           const variationId = this.variationIds[name]; // variation IDs are keyed by file base name
 
           if (!acc[name]) {
@@ -67,53 +109,27 @@ class KameleoonPlugin {
           return acc;
         }, {});
 
-        // Loop over each entry in fileNames to process CSS and JS files for each variation/global
-        for (const [fileName, { cssCode, jsCode, variationId }] of Object.entries(fileNames)) {
-          const headers = {
-            'Content-Type': 'application/json',
-            'Accept': '*/*',
-            'Authorization': `Bearer ${tokenData.access_token}`
-          };
+        // Update Kameleoon variations
+        const updatePromises = Object.entries(fileNames).map(([fileName, { cssCode, jsCode, variationId }]) => {
+          const url = fileName === 'global'
+            ? `https://api.kameleoon.com/experiments/${this.experimentId}`
+            : `https://api.kameleoon.com/variations/${variationId}`;
 
-          let url;
-          let data;
+          const data = fileName === 'global'
+            ? { commonCssCode: cssCode, commonJavaScriptCode: jsCode }
+            : { cssCode, experimentId: this.experimentId, jsCode };
 
-          if (fileName === 'global') {
-            url = `https://api.kameleoon.com/experiments/${this.experimentId}`;
-            data = JSON.stringify({
-              "commonCssCode": cssCode,
-              "commonJavaScriptCode": jsCode,
-            });
-          } else {
-            url = `https://api.kameleoon.com/variations/${variationId}`;
-            data = JSON.stringify({
-              "cssCode": cssCode,
-              "experimentId": this.experimentId,
-              "jsCode": jsCode,
-            });
-          }
+          return this.sendKameleoonRequest(url, 'PATCH', data, accessToken);
+        });
 
-          const response = await fetch(url, {
-            method: 'PATCH',
-            headers,
-            body: data
-          });
+        await Promise.all(updatePromises);
 
-          const responseData = await response.json();
-
-          if (response.ok) {
-            console.log(`Updated ${fileName}:`, responseData);
-          } else {
-            console.error(`Error updating ${fileName}:`, error);
-          }
-        }
-
-        // Now trigger the experiment simulation
+        // Trigger simulation after 10 seconds
         const simulationUrl = `https://api.kameleoon.com/experiments/simulate/${this.experimentId}`;
         const simulationResponse = await fetch(simulationUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
         });
@@ -127,7 +143,8 @@ class KameleoonPlugin {
             await open(responseText);
             console.log('Successfully accessed simulation URL:', responseText);
           }, 10000);
-
+        } else {
+          console.error('Failed to trigger simulation:', await simulationResponse.text());
         }
 
       } catch (error) {
