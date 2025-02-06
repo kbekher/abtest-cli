@@ -150,7 +150,7 @@ async function create() {
     // Construct the base content for variations
     const constructVariationContent = (i) => {
 
-        return `import { elem, elemSync, qs, qsa, addTask, ${global ? 'exec' : ''} } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
+        return `import { elem, elemSync, qs, qsa, getPage, addTask, ${global ? 'exec' : ''} } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';
 
 /**
  * Ticket
@@ -166,27 +166,43 @@ async function create() {
 
     const appContainer = await elemSync('#app');
 
-    addTask(PREFIX, () => {
-        console.log(">>> UX-${ticket} mutation observer executed");
-    });
+    addTask(
+        PREFIX, 
+        () => { console.log(">>> UX-${ticket} observer init function executed"); },
+        () => { 
+            console.log(">>> UX-${ticket} targeting condition executed");
+            return getPage() === 'pdp';
+        },
+        () => { console.log(">>> UX-${ticket} remove function executed"); },
+    );
 })();
 `;
     };
 
     // Construct global.js content
-    const contentGlobal = `${global ? `import { elem, elemSync, qs, qsa, addTask, share } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';` : ''}
+    const contentGlobal = `${global ? `import { elem, elemSync, qs, qsa, getPage, addTask, share } from '@douglas.onsite.experimentation/douglas-ab-testing-toolkit';` : ''}
 
 /**
  * Ticket
  * https://douglas-group.atlassian.net/browse/UX-${ticket}
  */
 
-${global ? `(async () => { 
+${global ? `(async () => {
     const PREFIX = 'ux${ticket}__';
 
     share('ux${ticket}', () => {
 
-    }); 
+    });
+
+    addTask(
+        PREFIX, 
+        () => { console.log(">>> UX-${ticket} observer init function executed"); },
+        () => { 
+            console.log(">>> UX-${ticket} targeting condition executed");
+            return getPage() === 'pdp';
+        },
+        () => { console.log(">>> UX-${ticket} remove function executed"); },
+    );
 })();` : ''}
 `;
 
