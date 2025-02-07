@@ -67,7 +67,7 @@ Object.values(selectedFiles).forEach(filePath => {
         });
 
         // Push file main content without imports
-        mainContents.push(content.replace(otherImportMatches.join('\n'), ''));
+        mainContents.push(content.replace(otherImportMatches?.join('\n'), ''));
     } else {
         console.warn(`Warning: File not found: ${filePath}`);
     }
