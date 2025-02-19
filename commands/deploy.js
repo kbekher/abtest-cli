@@ -68,7 +68,7 @@ async function deploy() {
   if (!inputData) return;
 
   const { destinationDir, ticket, name, country, isNewControl, variations, goals } = inputData;
-  const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name} --CLI`;
+  const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name}`;
   const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`;
 
   const spinner = ora({ text: chalk.bold.magentaBright("Creating experiment..."), spinner: "soccerHeader" }).start();
