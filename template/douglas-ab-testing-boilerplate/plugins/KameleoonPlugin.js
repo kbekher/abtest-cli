@@ -109,8 +109,8 @@ class KameleoonPlugin {
           return acc;
         }, {});
 
-        // Update Kameleoon variations
-        const updatePromises = Object.entries(fileNames).map(([fileName, { cssCode, jsCode, variationId }]) => {
+        // Update Kameleoon variations / global sequentially
+        for (const [fileName, { cssCode, jsCode, variationId }] of Object.entries(fileNames)) {
           const url = fileName === 'global'
             ? `https://api.kameleoon.com/experiments/${this.experimentId}`
             : `https://api.kameleoon.com/variations/${variationId}`;
@@ -119,10 +119,13 @@ class KameleoonPlugin {
             ? { commonCssCode: cssCode, commonJavaScriptCode: jsCode }
             : { cssCode, experimentId: this.experimentId, jsCode };
 
-          return this.sendKameleoonRequest(url, 'PATCH', data, accessToken);
-        });
-
-        await Promise.all(updatePromises);
+          try {
+            await this.sendKameleoonRequest(url, 'PATCH', data, accessToken);
+            console.log(`Successfully updated: ${fileName}`);
+          } catch (error) {
+            console.error(`Failed to update: ${fileName}`, error);
+          }
+        }
 
         // Trigger simulation after 10 seconds
         const simulationUrl = `https://api.kameleoon.com/experiments/simulate/${this.experimentId}`;
