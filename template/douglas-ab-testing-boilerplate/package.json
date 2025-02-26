@@ -34,6 +34,6 @@
         "webpack-dev-server": "^4.11.0"
     },
     "dependencies": {
-        "@douglas.onsite.experimentation/douglas-ab-testing-toolkit": "^2.0.5"
+        "@douglas.onsite.experimentation/douglas-ab-testing-toolkit": "^2.0.7"
     }
 }
