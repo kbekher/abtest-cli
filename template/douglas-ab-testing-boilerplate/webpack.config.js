@@ -9,7 +9,7 @@ const KameleoonPlugin = require('./plugins/KameleoonPlugin');
 const isProduction = process.env.NODE_ENV === 'production';
 const isBuildCommand = process.env.NODE_ENV === 'development' || isProduction;
 
-                                        // .filter(file => file !== 'bundle.js')
+// .filter(file => file !== 'bundle.js')
 const fileNames = fs.readdirSync('./src').reduce((acc, file) => {
     let name = file.replace('.scss', '');
     return { ...acc, [name]: `./src/${file}` };
@@ -18,9 +18,9 @@ const fileNames = fs.readdirSync('./src').reduce((acc, file) => {
 // Usage Example: VARIATION=variation-02 npm run dev
 const selectedVariation = process.env.VARIATION || 'variation-01';
 const selectedFiles = Object.keys(fileNames)
-    .filter(file => new RegExp(`^(global|goals|${selectedVariation})\\.js$`).test(file))    
+    .filter(file => new RegExp(`^(global|goals|${selectedVariation})\\.js$`).test(file))
     .reduce((acc, file) => ({ ...acc, [file]: fileNames[file] }), {});
-    
+
 // console.log('Selected files:', selectedFiles);
 
 const srcDir = path.resolve(__dirname, 'src');
@@ -55,12 +55,14 @@ Object.values(selectedFiles).forEach(filePath => {
 
         otherImportMatches?.forEach(importStatement => {
 
-            // Extract import between {} into a set, to avoid dublicated imports (from @douglas.onsite.experimentation/douglas-ab-testing-toolkit)
-            const matchedValues = importStatement.match(/import\s+\{([^}]+)\}/);
-            if (matchedValues) {
-                matchedValues[1].trim().split(',').forEach(value => toolkitImports.add(value));
+            // Match imports inside {} from `@douglas.onsite.experimentation/douglas-ab-testing-toolkit`
+            const matchedValues = importStatement.match(/import\s+\{([^}]+)\}\s+from\s+['"]@douglas\.onsite\.experimentation\/douglas-ab-testing-toolkit['"]/);
 
-            // Extract other imports into a new set
+            if (matchedValues) {
+                // Extract individual import values, trim them, and add to the set
+                matchedValues[1].split(',').map(value => value.trim()).forEach(value => toolkitImports.add(value));
+
+                // Extract other imports into a new set
             } else {
                 otherImports.add(importStatement);
             }
