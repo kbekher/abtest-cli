@@ -133,7 +133,7 @@ async function deploy() {
 
       // Create variations
       const variationPromises = Array.from({ length: variations }, (_, i) =>
-        manageVariation('POST', '', { name: `Variant ${i + 1}`, siteId: siteId }, bearerToken)
+        manageVariation('POST', '', { name: `Variation ${i + 1}`, siteId: siteId }, bearerToken)
       );
       const createdVariations = await Promise.all(variationPromises);
       variationIds.push(...createdVariations.map(v => v.id));
