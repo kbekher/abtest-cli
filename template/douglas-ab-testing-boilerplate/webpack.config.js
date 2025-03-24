@@ -18,7 +18,7 @@ const fileNames = fs.readdirSync('./src').reduce((acc, file) => {
 // Usage Example: VARIATION=variation-02 npm run dev
 const selectedVariation = process.env.VARIATION || 'variation-01';
 const selectedFiles = Object.keys(fileNames)
-    .filter(file => new RegExp(`^(global|goals|${selectedVariation})\\.js$`).test(file))
+    .filter(file => new RegExp(`^(global|${selectedVariation})\\.js$`).test(file))
     .reduce((acc, file) => ({ ...acc, [file]: fileNames[file] }), {});
 
 // console.log('Selected files:', selectedFiles);
@@ -104,7 +104,10 @@ module.exports = {
         rules: [
             {
                 test: /\.js$/,
-                exclude: /node_modules/,
+                exclude: [
+                    /node_modules/,
+                    /.*(kameleoon|trigger|targeting).*/i
+                ],
                 use: {
                     loader: 'babel-loader',
                     options: {
