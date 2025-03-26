@@ -76,7 +76,11 @@ Object.values(selectedFiles).forEach(filePath => {
 });
 
 // Write the combined content wrapped in an interval to bundle.js
-fs.writeFileSync(bundlePath, wrapWithInterval([...toolkitImports].join(', '), [...otherImports].join(' '), mainContents.join('\n')));
+fs.writeFileSync(bundlePath, wrapWithInterval(
+    [...toolkitImports].filter(Boolean).join(', '), // Filter out empty values
+    [...otherImports].join(' '),
+    mainContents.join('\n')
+));
 
 // console.log('Created src/bundle.js with the selected files wrapped in an interval.');
 
