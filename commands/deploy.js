@@ -9,10 +9,9 @@ const { createMessage, getFormattedDate } = require('../utils/utils');
 
 // Constants
 const BASE_URL_API = 'https://api.kameleoon.com';
-const SEGMENT_ID_QA = 273199; // TODO: Change dynamically QA Audinces for other projects are added
-// const SITE_ID_DE = 25854;
+// const SEGMENT_ID_QA = 273199; TODO: possible to set segment id dynamically
 
-// Define API URLs
+// API URLs
 const urls = {
   authToken: `${BASE_URL_API}/oauth/token`,
   siteList: `${BASE_URL_API}/sites`,
@@ -21,46 +20,104 @@ const urls = {
   goalsList: `${BASE_URL_API}/goals`,
 };
 
+// Utility Functions
 const getKameleoonData = async () => {
   const kameleoonFile = fs.readFileSync(path.join(require('os').homedir(), '.kameleoon.json'));
-
   return JSON.parse(kameleoonFile);
 };
 
-
 // Common Request Function
 const sendRequest = async (method, url, token, data) => {
-  const options = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': '*/*',
-      'Authorization': token,
-    },
-    body: JSON.stringify(data),
-  };
-
   try {
-    const response = await fetch(url, options);
-    const responseData = await response.json();
-    return responseData;
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Authorization': token,
+      },
+      body: JSON.stringify(data),
+    });
+    return await response.json();
   } catch (error) {
     throw new Error(`Error in sendind request: ${error.message}`);
   }
 };
 
-
-// Create or Update Experiment
-const manageExperiment = async (method, experimentId = '', data, token) => {
-  const url = experimentId ? `${urls.experimentList}/${experimentId}` : urls.experimentList;
-  return sendRequest(method, url, token, data);
+// Auth
+const authenticate = async (client_id, client_secret) => {
+  const response = await fetch(urls.authToken, {
+    method: 'POST',
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id,
+      client_secret,
+    }),
+  });
+  const { access_token } = await response.json();
+  return `Bearer ${access_token}`;
 };
 
-// Create or Update Variation
-const manageVariation = async (method, variationId = '', data, token) => {
-  const url = variationId ? `${urls.variationsList}/${variationId}` : urls.variationsList;
-  return sendRequest(method, url, token, data);
+// Create experiment
+const createExperiment = async (baseUrl, projectName, siteId, token) => {
+  const experimentData = {
+    baseURL: baseUrl,
+    name: projectName,
+    siteId,
+    type: 'DEVELOPER',
+    // { targetingSegmentId: SEGMENT_ID_QA })
+  };
+  return await sendRequest('POST', urls.experimentList, token, experimentData);
 };
+
+const createVariations = async (experiment, variations, siteId, isNewControl, token) => {
+  const variationIds = [];
+
+  if (isNewControl) {
+    // Change first variation's name to New Control
+    await sendRequest('PATCH', `${urls.variationsList}/${experiment.variations[0]}`, token, { name: 'New Control', siteId });
+
+    // Create variations
+    const variationPromises = Array.from({ length: variations }, (_, i) =>
+      sendRequest('POST', urls.variationsList, token, { name: `Variation ${i + 1}`, siteId })
+    );
+
+    const createdVariations = await Promise.all(variationPromises);
+    variationIds.push(...createdVariations.map(v => v.id));
+
+  } else {
+    if (variations > 1) {
+      // Create variations starting from V2
+      const variationPromises = Array.from({ length: variations - 1 }, (_, i) =>
+        sendRequest('POST', urls.variationsList, token, { name: `Variation ${i + 2}`, siteId })
+      );
+  
+      const createdVariations = await Promise.all(variationPromises);
+      variationIds.push(...createdVariations.map(v => v.id));
+    }
+  }
+
+  return [experiment.variations[0], ...variationIds];
+};
+
+const createGoals = async (goals, siteId, token, ticket) => {
+  if (!Array.isArray(goals) || goals.length === 0) {
+    console.warn("No goals provided, skipping goal creation. \n");
+    return [];
+  }
+
+  const goalPromises = goals.map(goal =>
+    sendRequest('POST', urls.goalsList, token, {
+      name: `UX-${ticket}: ${goal}`,
+      siteId,
+      type: 'CUSTOM',
+      hasMultipleConversions: true
+    })
+  );
+  const createdGoals = await Promise.all(goalPromises);
+  return createdGoals.map(goal => goal.id);
+};
+
 
 // Main Deploy Function
 async function deploy() {
@@ -69,159 +126,47 @@ async function deploy() {
 
   const { destinationDir, ticket, name, country, isNewControl, variations, goals } = inputData;
   const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name}`;
-  const countryDomain = country === 'fr' ? `www.nocibe.${country}` : `www.douglas.${country}`;
 
   const spinner = ora({ text: chalk.bold.magentaBright("Creating experiment..."), spinner: "soccerHeader" }).start();
 
-  const kameleoonJSON = await getKameleoonData();
-
-  if (!kameleoonJSON) {
-    console.log(chalk.red("No credentials found in .kameleoon.json file"));
-    throw new Error("No credentials found in .kameleoon.json file");
-  }
-
-  // return;
-
   try {
-    const tokenResponse = await fetch(urls.authToken, {
-      method: 'POST',
-      body: new URLSearchParams({
-        'grant_type': 'client_credentials',
-        'client_id': kameleoonJSON.client_id,
-        'client_secret': kameleoonJSON.client_secret
-      })
+    const kameleoonJSON = await getKameleoonData();
+    const token = await authenticate(kameleoonJSON.client_id, kameleoonJSON.client_secret);
+
+    const sites = await sendRequest('GET', urls.siteList, token);
+    const project = sites.find(site => site.name === `www.${country === 'fr' ? 'nocibe' : 'douglas'}.${country}`);
+    if (!project) throw new Error(`Project with domain not found`);
+
+    const experiment = await createExperiment(project.url, projectName, project.id, token);
+    const variationIds = await createVariations(experiment, variations, project.id, isNewControl, token);
+    const goalsIds = await createGoals(goals, project.id, token, ticket);
+
+    await sendRequest('PATCH', `${urls.experimentList}/${experiment.id}`, token, {
+      deviations: { ...experiment.deviations, ...Object.fromEntries(variationIds.map(id => [id, 0])) }, // set traffic allocation to 0
+      goals: goalsIds
     });
-    const tokenData = await tokenResponse.json();
-    const bearerToken = `Bearer ${tokenData.access_token}`;
 
-    const sites = await sendRequest('GET', urls.siteList, bearerToken);
-    const project = sites.find(site => site.name === countryDomain);
+    // Update kameleoonExperimentData variations and sort in ascending order
+    const sortedVariationIds = variationIds.reduce((acc, id, index) => {
+      acc[isNewControl && index === 0 ? "control" : `variation-${String(index + (isNewControl ? 0 : 1)).padStart(2, '0')}`] = id;
+      return acc;
+    }, {});
 
-    if (!project) {
-      throw new Error(`Project with domain ${countryDomain} not found`);
-    }
+    fs.writeFileSync(path.join(destinationDir, 'experimentData.json'), JSON.stringify({ experimentId: experiment.id, variationIds: sortedVariationIds }, null, 2));
 
-    const { url: baseProjectUrl, id: siteId } = project;
+    spinner.succeed(chalk.green.bold("Experiment created successfully!"));
 
-    // Create Experiment
-    const experimentData = {
-      baseURL: baseProjectUrl,
-      name: projectName,
-      siteId: siteId,
-      type: "DEVELOPER",
-      ...(country === 'de' && { targetingSegmentId: SEGMENT_ID_QA }) // TODO: change when QA Audinces are dynamic
-    };
+    // Navigate to directory and run npm install, npm run dev commands
+    process.chdir(destinationDir);
+    execSync('npm install', { stdio: 'inherit' });
+    execSync('npm run dev', { stdio: 'inherit' });
 
-    const experiment = await manageExperiment('POST', '', experimentData, bearerToken);
-
-    // Define a path to store experiment data for build command 
-    const experimentDataPath = path.join(destinationDir, 'experimentData.json');
-
-    // Create an object to store both experiment ID and variation IDs
-    const kameleoonExperimentData = { 
-      experimentId: experiment.id,
-      variationIds: {}
-    };
-
-    // Handle Variations
-    const variationIds = [];
-
-    if (isNewControl) {
-      const firstVariationId = experiment.variations[0];
-      // Rename first variation to New Control
-      await manageVariation('PATCH', firstVariationId, { name: 'New Control', siteId: siteId }, bearerToken);
-
-      // Create variations
-      const variationPromises = Array.from({ length: variations }, (_, i) =>
-        manageVariation('POST', '', { name: `Variation ${i + 1}`, siteId: siteId }, bearerToken)
-      );
-      const createdVariations = await Promise.all(variationPromises);
-      variationIds.push(...createdVariations.map(v => v.id));
-
-    } else if (variations > 1) {
-      // Create variations starting from V2
-      const variationPromises = Array.from({ length: variations - 1 }, (_, i) =>
-        manageVariation('POST', '', { name: `Variant ${i + 2}`, siteId: siteId }, bearerToken)
-      );
-      const createdVariations = await Promise.all(variationPromises);
-      variationIds.push(...createdVariations.map(v => v.id));
-    }
-
-    // Add Variations to the experiment
-    if (variationIds.length > 0) {
-      // Adding deviations is the only way to add variations to the experiment 
-      // Combine existind deviations with newly create variations
-      // And set traffic to newly created variations to 0 
-      const deviations = { ...experiment.deviations, ...Object.fromEntries(variationIds.map(id => [id, 0])) };
-      await manageExperiment('PATCH', experiment.id, { deviations }, bearerToken);
-
-      // Update kameleoonExperimentData variations and sort in ascending order
-      const sortedVariationIds = [
-        ...experiment.variations,
-        ...variationIds,
-      ].sort((a, b) => a - b); // Combine and sort IDs
-
-      // Convert sorted variation IDs into an object
-      kameleoonExperimentData.variationIds = sortedVariationIds.reduce((acc, id, index) => {
-        if (isNewControl && index === 0) {
-          acc["control"] = id; // Set the first ID as "control" if NewControl is true
-        } else {
-          const variationKey = `variation-${String(index + (isNewControl ? 0 : 1)).padStart(2, '0')}`;
-          acc[variationKey] = id; // Set subsequent variations with numbered keys
-        }
-        return acc;
-      }, {});
-    }
-
-    if (goals) {
-      // Handle Goals
-      const goalsIds = [];
-
-      // Create goals
-      const goalPromises = goals.map((goal) =>                                                            // These two have to be specified
-        sendRequest('post', urls.goalsList, bearerToken, { name: `UX-${ticket}: ${goal}`, siteId: siteId, type: 'CUSTOM', hasMultipleConversions: true })
-      );
-
-      const createdGoals = await Promise.all(goalPromises);
-      goalsIds.push(...createdGoals.map(v => v.id));
-
-      // Add goals to the experiment
-      await manageExperiment('PATCH', experiment.id, { goals: [...experiment.goals, ...goalsIds] }, bearerToken);
-    }
-
-    // TODO: 
-    // Write the data to experimentData.json
-    fs.writeFileSync(experimentDataPath, JSON.stringify(kameleoonExperimentData, null, 2));
-
-    spinner.succeed(chalk.green.bold("Kameleoon experiment created successfully!"));
-
-
-    // Run npm install
-    try {
-      console.log('Navigating into the folder...');
-      process.chdir(destinationDir);
-
-      console.log('Running npm install...');
-      execSync('npm install', { stdio: 'inherit' });
-
-      spinner.succeed(chalk.green.bold('npm install completed successfully!'));
-
-    } catch (error) {
-      spinner.fail(chalk.red.bold('npm install failed:', error.message));
-      process.exit(1); // Exit with error status
-    }
-
-    console.log(
-      chalk.gray(
-          `Navigate to the directory: ${chalk.yellow('cd')} ${chalk.blue(destinationDir.split('/').pop())} and start developing: ${chalk.yellow('npm run dev')} \n`
-      )
-    );
+    console.log(chalk.gray(`Navigate to the directory: ${chalk.yellow('cd')} ${chalk.blue(destinationDir.split('/').pop())} and start developing: ${chalk.yellow('npm run dev')} \n`));
 
     createMessage("Time to A/B Test!");
 
   } catch (error) {
     spinner.fail(chalk.red.bold("Error creating experiment"));
-    console.log(error);
     console.error(error.message);
   }
 }
