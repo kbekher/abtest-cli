@@ -157,7 +157,11 @@ async function deploy() {
     spinner.succeed(chalk.green.bold("Experiment created successfully!"));
 
     // Navigate to directory and run npm install, npm run dev commands
+    console.log("Changing directory to:", destinationDir);
     process.chdir(destinationDir);
+
+    // execSync(`open -a Terminal "${destinationDir}"`);
+    
     execSync('npm install', { stdio: 'inherit' });
     execSync('npm run dev', { stdio: 'inherit' });
 
