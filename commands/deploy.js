@@ -91,7 +91,7 @@ const createVariations = async (experiment, variations, siteId, isNewControl, to
       const variationPromises = Array.from({ length: variations - 1 }, (_, i) =>
         sendRequest('POST', urls.variationsList, token, { name: `Variation ${i + 2}`, siteId })
       );
-  
+
       const createdVariations = await Promise.all(variationPromises);
       variationIds.push(...createdVariations.map(v => v.id));
     }
@@ -127,7 +127,7 @@ async function deploy() {
   const { destinationDir, ticket, name, country, isNewControl, variations, goals } = inputData;
   const projectName = `[${country.toUpperCase()} - DEV] ${getFormattedDate()} | UX-${ticket} - ${name}`;
 
-  const spinner = ora({ text: chalk.bold.magentaBright("Creating experiment..."), spinner: "soccerHeader" }).start();
+  const spinner = ora({ text: chalk.bold.magentaBright("Creating experiment... \n"), spinner: "soccerHeader" }).start();
 
   try {
     const kameleoonJSON = await getKameleoonData();
@@ -161,7 +161,10 @@ async function deploy() {
     process.chdir(destinationDir);
 
     // execSync(`open -a Terminal "${destinationDir}"`);
-    
+    // Use the `code` CLI to focus on VS Code - opens in new window
+    // execSync(`code .`); 
+
+    // You can also directly run npm commands using the terminal
     execSync('npm install', { stdio: 'inherit' });
     execSync('npm run dev', { stdio: 'inherit' });
 
@@ -170,7 +173,7 @@ async function deploy() {
     createMessage("Time to A/B Test!");
 
   } catch (error) {
-    spinner.fail(chalk.red.bold("Error creating experiment"));
+    spinner.fail(chalk.red.bold("Error creating experiment \n"));
     console.error(error.message);
   }
 }

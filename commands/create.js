@@ -256,7 +256,7 @@ ${global ? `(async () => {
 
     // Start loading
     const spinner = ora({
-        text: chalk.bold.yellowBright("Creating directory..."),
+        text: chalk.bold.yellowBright("Creating directory... \n"),
         spinner: "soccerHeader", // Choose the spinner style here
     }).start();
 
