@@ -159,14 +159,11 @@ async function deploy() {
     // Navigate to directory and run npm install, npm run dev commands
     console.log("Changing directory to:", destinationDir);
     process.chdir(destinationDir);
-
-    // execSync(`open -a Terminal "${destinationDir}"`);
-    // Use the `code` CLI to focus on VS Code - opens in new window
-    // execSync(`code .`); 
-
-    // You can also directly run npm commands using the terminal
+    
     execSync('npm install', { stdio: 'inherit' });
     execSync('npm run dev', { stdio: 'inherit' });
+
+    // execSync(`open -a Terminal "${destinationDir}"`);
 
     console.log(chalk.gray(`Navigate to the directory: ${chalk.yellow('cd')} ${chalk.blue(destinationDir.split('/').pop())} and start developing: ${chalk.yellow('npm run dev')} \n`));
 
