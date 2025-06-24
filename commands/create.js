@@ -167,17 +167,17 @@ async function create() {
 
         console.log(">>> UX-${ticket} is running, Variant ${i}");
 
-        const appContainer = await elemSync('#app');
+        // const appContainer = await elemSync('#app');
 
-        addTask(
-            PREFIX, 
-            () => { console.log(">>> UX-${ticket} observer init function executed"); },
-            () => { 
-                console.log(">>> UX-${ticket} targeting condition executed");
-                return getPage() === 'pdp';
-            },
-            () => { console.log(">>> UX-${ticket} remove function executed"); },
-        );
+        // addTask(
+        //     PREFIX, 
+        //     () => { console.log(">>> UX-${ticket} observer init function executed"); },
+        //     () => { 
+        //         console.log(">>> UX-${ticket} targeting condition executed");
+        //         return getPage() === 'pdp';
+        //     },
+        //     () => { console.log(">>> UX-${ticket} remove function executed"); },
+        // );
     }, PREFIX)();
 })();
 `;
