@@ -65,7 +65,7 @@ Before using the CLI, configure your Kameleoon API credentials via a `.kameleoon
    - Press `CTRL + O`, then press `Enter` to save.
    - Press `CTRL + X` to exit the editor.
 
-Now, the CLI will read your Kameleoon credentials from the .kameleoon_env file in your home directory to obtain Kameleoon access token whenever it's executed. 😉
+Now, the CLI will read your Kameleoon credentials from the `.kameleoon_env` file in your home directory to obtain Kameleoon access token whenever it's executed. 😉
 
 
 ## ⚙️ CLI Workflow and Webpack Capabilities
@@ -80,14 +80,14 @@ Running `abtest create` will:
 # Start development:
     ```bash
     npm run dev
-    ```
+```
 
 # For production-ready code, use one of the following commands:
     ```bash
     npm run build // local build
     npm run build-dev // build with logs and Kameleoon uploads
     npm run build-prod // build without logs and with Kameleoon uploads
-   ```
+```
 All build commands generate a `dist` folder with minified scripts and update the corresponding Kameleoon experiment. 🚀
 
 
