@@ -90,6 +90,8 @@ npm run build-prod // build without logs and with Kameleoon uploads
 
 All build commands generate a `dist` folder with minified scripts and update the corresponding Kameleoon experiment. 🚀
 
+![alt text](image.png)
+
 
 ## 📝 Changelog
 
@@ -98,6 +100,3 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history and feature updates.
 ## 📄 License
 
 This project is licensed under the [MIT License](./LICENSE) © 2024 Kristina Bekher.
-
-
-![alt text](image.png)
