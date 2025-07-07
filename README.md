@@ -80,14 +80,16 @@ Running `abtest create` will:
 ### Start development:
     ```bash
     npm run dev
-```
+   ```
+
 
 ### For production-ready code, use one of the following commands:
     ```bash
     npm run build // local build
     npm run build-dev // build with logs and Kameleoon uploads
     npm run build-prod // build without logs and with Kameleoon uploads
-```
+   ```
+
 All build commands generate a `dist` folder with minified scripts and update the corresponding Kameleoon experiment. 🚀
 
 
