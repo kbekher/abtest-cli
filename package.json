@@ -1,6 +1,6 @@
 {
     "name": "douglas-ab-testing-cli",
-    "version": "1.0.0",
+    "version": "2.4.0",
     "description": "A command line interface tool designed to streamline the creation of A/B test boilerplate code, as well as creation and updates of experiments in Kameleoon.",
     "homepage": "https://www.douglas.de/de",
     "license": "MIT",
