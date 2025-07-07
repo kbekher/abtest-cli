@@ -78,17 +78,15 @@ Running `abtest create` will:
 
 
 ### Start development:
-    ```bash
+```bash
     npm run dev
-   ```
-
-
+```
 ### For production-ready code, use one of the following commands:
-    ```bash
+```bash
     npm run build // local build
     npm run build-dev // build with logs and Kameleoon uploads
     npm run build-prod // build without logs and with Kameleoon uploads
-   ```
+```
 
 All build commands generate a `dist` folder with minified scripts and update the corresponding Kameleoon experiment. 🚀
 
@@ -102,9 +100,4 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history and feature updates.
 This project is licensed under the [MIT License](./LICENSE) © 2024 Kristina Bekher.
 
 
-```bash
- _______             __         ___     _____    ______        __  __
-/_  __(_)_ _  ___   / /____    / _ |  _/_/ _ )  /_  __/__ ___ / /_/ /
- / / / /  ' \/ -_) / __/ _ \  / __ |_/_// _  |   / / / -_|_-</ __/_/ 
-/_/ /_/_/_/_/\__/  \__/\___/ /_/ |_/_/ /____/   /_/  \__/___/\__(_)  
-```
+![alt text](image.png)
