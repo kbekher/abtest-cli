@@ -1,10 +1,24 @@
 # Douglas AB-Testing CLI with Kameleoon API
 
-A command line interface (CLI) tool designed to streamline the creation of A/B test boilerplate code, as well as creation and updates of experiments in Kameleoon. With this tool, you can quickly generate the necessary structure and components needed to set up A/B tests for your projects, saving time and ensuring consistency in your testing process.
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## Installation
+A command-line interface (CLI) tool designed to streamline the creation of A/B test boilerplate code, as well as the creation and management of experiments in Kameleoon.
 
-To install and use A/B Testing CLI, follow these steps:
+With this tool, you can quickly generate the necessary structure and components needed to set up A/B tests for your projects — saving time and ensuring consistency.
+
+---
+
+## 🚀 Features
+
+- Full integration with the [Kameleoon API](https://developers.kameleoon.com/)
+- CLI-based experiment creation, goal setup, and variation assignment
+- Auto-generated folders and dev environment
+- Webpack-based builds that automatically update your Kameleoon code
+- Compatible with [@douglas.onsite.experimentation/douglas-ab-testing-toolkit](https://www.npmjs.com/package/@douglas.onsite.experimentation/douglas-ab-testing-toolkit)
+
+---
+
+## 📦 Installation
 
 1. Clone the repository:
    ```bash
@@ -28,9 +42,9 @@ To install and use A/B Testing CLI, follow these steps:
 
 6. Follow the prompts to provide input and customize the folder creation process.
 
-## Configuring Kameleoon Credentials
+## 🔐 Kameleoon API Configuration
 
-Before using the CLI, you need to configure your Kameleoon API credentials to enable interaction with the Kameleoon platform. The `.kameleoon_env` file should be created in your home directory for global access.
+Before using the CLI, configure your Kameleoon API credentials via a `.kameleoon_env` file in your home directory.
 
 ### Steps to Create a `.kameleoon_env` File in the Home Directory:
 
@@ -54,24 +68,36 @@ Before using the CLI, you need to configure your Kameleoon API credentials to en
 Now, the CLI will read your Kameleoon credentials from the .kameleoon_env file in your home directory to obtain Kameleoon access token whenever it's executed. 😉
 
 
-## CLI and Webpack Configuration Capabilities
+## ⚙️ CLI Workflow and Webpack Capabilities
 
-With the `abtest create` command, a folder is created on your machine, along with a corresponding experiment in Kameleoon using the provided input information. In the new folder, you'll find an initial setup ready for development.
+Running `abtest create` will:
+   * Create a local folder for your experiment
+   * Automatically create an experiment in Kameleoon
+   * Install all necessary packages, including:
+      * [`@douglas.onsite.experimentation/douglas-ab-testing-toolkit`](https://www.npmjs.com/package/@douglas.onsite.experimentation/douglas-ab-testing-toolkit), version ^2.0.0
 
-1. Naviagte to the create folder, all necessary packages are already install by default.
-Packages include the custom[`@douglas.onsite.experimentation/douglas-ab-testing-toolkit`](https://www.npmjs.com/package/@douglas.onsite.experimentation/douglas-ab-testing-toolkit) package, version ^2.0.0, which is compatible with Kameleoon (older versions compatible with Adobe Target).
 
-2. Start development:
+# Start development:
     ```bash
     npm run dev
+    ```
 
-3. For production-ready code, use one of the following commands:
+# For production-ready code, use one of the following commands:
     ```bash
     npm run build // local build
     npm run build-dev // build with logs and Kameleoon uploads
     npm run build-prod // build without logs and with Kameleoon uploads
+   ```
+All build commands generate a `dist` folder with minified scripts and update the corresponding Kameleoon experiment. 🚀
 
-These commands generate a `dist` folder with minified scripts and update the corresponding variations/global code in Kameleoon for the current experiment. 🚀
+
+## 📝 Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for version history and feature updates.
+
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE) © 2024 Kristina Bekher.
 
 
 ```bash
@@ -79,3 +105,4 @@ These commands generate a `dist` folder with minified scripts and update the cor
 /_  __(_)_ _  ___   / /____    / _ |  _/_/ _ )  /_  __/__ ___ / /_/ /
  / / / /  ' \/ -_) / __/ _ \  / __ |_/_// _  |   / / / -_|_-</ __/_/ 
 /_/ /_/_/_/_/\__/  \__/\___/ /_/ |_/_/ /____/   /_/  \__/___/\__(_)  
+```
